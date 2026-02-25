@@ -32,35 +32,47 @@ export default function MonthPicker({ isOpen, onClose, year, month, onSelect }: 
 
   return (
     <div
-      className={`absolute inset-0 z-50 flex items-center justify-center transition-colors duration-300 ${
-        animating ? 'bg-[rgba(15,23,42,0.4)]' : 'bg-transparent'
-      }`}
+      style={{
+        position: 'absolute',
+        inset: 0,
+        zIndex: 50,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: animating ? 'rgba(15,23,42,0.4)' : 'transparent',
+        transition: 'background 0.3s',
+      }}
       onClick={onClose}
     >
       <div
-        className={`bg-white rounded-2xl w-[calc(100%-24px)] mx-3 transition-all duration-300 ease-out ${
-          animating ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
-        }`}
-        style={{ boxShadow: '0px 20px 40px rgba(0,0,0,0.15)' }}
+        style={{
+          background: '#fff',
+          borderRadius: 16,
+          width: 'calc(100% - 48px)',
+          boxShadow: '0px 20px 40px rgba(0,0,0,0.15)',
+          transform: animating ? 'scale(1)' : 'scale(0.95)',
+          opacity: animating ? 1 : 0,
+          transition: 'transform 0.3s ease-out, opacity 0.3s ease-out',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-4 pt-5 pb-3">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 12px' }}>
           <button
             onClick={() => setPickerYear((y) => y - 1)}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+            style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer' }}
           >
             <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M6 1L1 6L6 11" stroke="#F6C6EA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
-          <span className="font-manrope text-lg font-bold text-dark">{pickerYear} 年</span>
+          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 18, fontWeight: 700, color: '#0F172A' }}>{pickerYear} 年</span>
           <button
             onClick={() => setPickerYear((y) => y + 1)}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+            style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer' }}
           >
             <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="#F6C6EA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 px-4 pb-5">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, padding: '0 20px 20px' }}>
           {MONTH_NAMES.map((name, i) => {
             const m = i + 1;
             const isCurrent = pickerYear === year && m === month;
@@ -68,11 +80,16 @@ export default function MonthPicker({ isOpen, onClose, year, month, onSelect }: 
               <button
                 key={m}
                 onClick={() => { onSelect(pickerYear, m); onClose(); }}
-                className={`py-3 rounded-xl text-sm font-semibold transition-all active:scale-95 ${
-                  isCurrent
-                    ? 'bg-pink-primary text-white'
-                    : 'text-dark hover:bg-pink-primary/10'
-                }`}
+                style={{
+                  padding: '12px 0',
+                  borderRadius: 12,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: isCurrent ? '#F6C6EA' : 'transparent',
+                  color: isCurrent ? '#fff' : '#0F172A',
+                }}
               >
                 {name}
               </button>

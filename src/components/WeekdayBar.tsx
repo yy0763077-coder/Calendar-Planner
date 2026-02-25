@@ -2,17 +2,24 @@ import { WEEKDAYS } from '../data/calendarData';
 
 export default function WeekdayBar() {
   return (
-    <div className="pt-3 px-3">
+    <div style={{ paddingTop: 12, paddingLeft: 16, paddingRight: 16 }}>
       <div
-        className="flex bg-[rgba(248,246,247,0.5)] rounded-lg"
-        style={{ borderTop: '1px solid rgba(246,198,234,0.1)', borderBottom: '1px solid rgba(246,198,234,0.1)' }}
+        style={{
+          display: 'flex',
+          background: 'rgba(248,246,247,0.5)',
+          borderRadius: 8,
+          borderTop: '1px solid rgba(246,198,234,0.1)',
+          borderBottom: '1px solid rgba(246,198,234,0.1)',
+        }}
       >
         {WEEKDAYS.map((day, i) => (
-          <div key={day} className="flex-1 flex items-center justify-center py-2">
+          <div key={day} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px 0' }}>
             <span
-              className={`text-[11px] font-bold ${
-                i === 0 ? 'text-red-weekend' : 'text-slate-text'
-              }`}
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: i === 0 ? '#F87171' : '#64748B',
+              }}
             >
               {day}
             </span>

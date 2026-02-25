@@ -69,71 +69,101 @@ export default function CreateEventModal({
 
   return (
     <div
-      className={`absolute inset-0 z-50 flex flex-col justify-end transition-colors duration-300 ${
-        animating ? 'bg-[rgba(15,23,42,0.4)]' : 'bg-transparent'
-      }`}
-      style={{ backdropFilter: animating ? 'blur(1px)' : 'none' }}
+      style={{
+        position: 'absolute',
+        inset: 0,
+        zIndex: 50,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-end',
+        background: animating ? 'rgba(15,23,42,0.4)' : 'transparent',
+        backdropFilter: animating ? 'blur(1px)' : 'none',
+        transition: 'background 0.3s',
+      }}
       onClick={onClose}
     >
       <div
-        className={`bg-white rounded-t-[20px] transition-transform duration-300 ease-out ${
-          animating ? 'translate-y-0' : 'translate-y-full'
-        }`}
-        style={{ boxShadow: '0px -4px 20px 0px rgba(0,0,0,0.05)' }}
+        style={{
+          background: '#fff',
+          borderRadius: '20px 20px 0 0',
+          transform: animating ? 'translateY(0)' : 'translateY(100%)',
+          transition: 'transform 0.3s ease-out',
+          boxShadow: '0px -4px 20px 0px rgba(0,0,0,0.05)',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-center pt-3 pb-1">
-          <div className="w-12 h-1.5 rounded-full bg-slate-200" />
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 12, paddingBottom: 4 }}>
+          <div style={{ width: 48, height: 6, borderRadius: 3, background: '#E2E8F0' }} />
         </div>
 
-        <div className="flex flex-col gap-5 px-5 pt-2 pb-10">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h2 className="text-[20px] font-bold text-[#171116] tracking-tight">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, padding: '8px 24px 40px 24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 700, color: '#171116', letterSpacing: '-0.02em', margin: 0 }}>
                 {isEditing ? '编辑行程' : '创建行程'}
               </h2>
               {displayDay && (
-                <span className="text-sm text-gray-text font-medium">— {displayDay} 日</span>
+                <span style={{ fontSize: 14, color: '#94A3B8', fontWeight: 500 }}>— {displayDay} 日</span>
               )}
             </div>
-            <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full transition-colors">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <button onClick={onClose} style={{ padding: 4, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer' }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <path d="M1 1L13 13M1 13L13 1" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round"/>
               </svg>
             </button>
           </div>
 
-          <div className="flex flex-col gap-5">
-            <div className="flex flex-col">
-              <label className="text-xs font-semibold text-dark tracking-widest uppercase opacity-60 pb-2">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={{ fontSize: 12, fontWeight: 600, color: '#0F172A', opacity: 0.6, letterSpacing: '0.05em', paddingBottom: 8 }}>
                 行程内容
               </label>
               <textarea
                 ref={textareaRef}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full bg-bg-light border-2 border-border-light rounded-2xl px-4 py-4 text-base leading-relaxed text-dark placeholder:text-gray-text resize-none focus:outline-none focus:border-pink-primary/40 transition-colors"
                 rows={3}
                 placeholder="描述您的行程计划，例如：下午 3 点与设计团队在咖啡厅讨论新版 UI 设计稿。"
+                style={{
+                  width: '100%',
+                  background: '#F8FAFC',
+                  border: '2px solid #F1F5F9',
+                  borderRadius: 16,
+                  padding: '16px 16px',
+                  fontSize: 16,
+                  lineHeight: 1.6,
+                  color: '#0F172A',
+                  resize: 'none',
+                  outline: 'none',
+                  fontFamily: 'inherit',
+                  boxSizing: 'border-box',
+                }}
               />
             </div>
 
-            <div className="flex flex-col gap-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <button
                 onClick={handleSubmit}
                 disabled={!title.trim()}
-                className="relative w-full h-12 bg-pink-primary rounded-2xl flex items-center justify-center gap-2 hover:brightness-95 active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none"
+                style={{
+                  width: '100%',
+                  height: 48,
+                  background: title.trim() ? '#F6C6EA' : '#F1F5F9',
+                  borderRadius: 16,
+                  border: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  cursor: title.trim() ? 'pointer' : 'default',
+                  opacity: title.trim() ? 1 : 0.5,
+                  boxShadow: '0px 4px 6px -4px rgba(246,198,234,0.2), 0px 10px 15px -3px rgba(246,198,234,0.2)',
+                }}
               >
-                <div
-                  className="absolute inset-0 rounded-2xl"
-                  style={{
-                    boxShadow: '0px 4px 6px -4px rgba(246,198,234,0.2), 0px 10px 15px -3px rgba(246,198,234,0.2)',
-                  }}
-                />
-                <span className="relative text-base font-bold text-white">
+                <span style={{ fontSize: 16, fontWeight: 700, color: '#fff' }}>
                   {isEditing ? '保存修改' : '创建行程'}
                 </span>
-                <svg className="relative" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                   <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </button>
@@ -141,20 +171,32 @@ export default function CreateEventModal({
               {isEditing && (
                 <button
                   onClick={handleDelete}
-                  className="w-full h-11 rounded-2xl flex items-center justify-center gap-2 border border-red-200 text-red-weekend hover:bg-red-50 active:scale-[0.98] transition-all"
+                  style={{
+                    width: '100%',
+                    height: 44,
+                    borderRadius: 16,
+                    border: '1px solid #FECACA',
+                    background: 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    cursor: 'pointer',
+                    color: '#F87171',
+                  }}
                 >
-                  <svg width="14" height="16" viewBox="0 0 14 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <svg width="14" height="16" viewBox="0 0 14 16" fill="none">
                     <path d="M1 4H13M5 4V2H9V4M3 4V14H11V4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     <path d="M5.5 7V11M8.5 7V11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
-                  <span className="text-sm font-bold">删除行程</span>
+                  <span style={{ fontSize: 14, fontWeight: 700 }}>删除行程</span>
                 </button>
               )}
             </div>
           </div>
         </div>
 
-        <div className="h-6 bg-white" />
+        <div style={{ height: 24, background: '#fff' }} />
       </div>
     </div>
   );

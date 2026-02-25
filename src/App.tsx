@@ -21,9 +21,11 @@ const AVATAR_SEEDS = ['Luna', 'Zoe', 'Max', 'Mia', 'Leo', 'Ivy', 'Sam', 'Ava', '
 let nextEventId = 100;
 let nextMemberId = 100;
 
+const now = new Date();
+
 export default function App() {
-  const [year, setYear] = useState(2024);
-  const [month, setMonth] = useState(6);
+  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(now.getMonth() + 1);
   const [members, setMembers] = useState<Member[]>(DEFAULT_MEMBERS);
   const [events, setEvents] = useState<StoredEvent[]>(DEFAULT_EVENTS);
   const [currentUserId, setCurrentUserId] = useState(DEFAULT_MEMBERS[0].id);
@@ -89,7 +91,7 @@ export default function App() {
         { id: `e${nextEventId++}`, title, memberId: currentUserId, year, month, day: targetDay },
       ]);
     }
-  }, [targetDay, year, month, members]);
+  }, [targetDay, year, month, currentUserId]);
 
   const handleDelete = useCallback((editing: EditingEvent) => {
     setEvents((prev) => prev.filter((e) => e.id !== editing.event.id));
@@ -112,7 +114,20 @@ export default function App() {
   }, []);
 
   return (
-    <div className="relative w-full max-w-[375px] h-[812px] bg-white flex flex-col overflow-hidden shadow-xl rounded-[40px]">
+    <div
+      style={{
+        position: 'relative',
+        width: '100%',
+        maxWidth: 375,
+        height: 812,
+        background: '#fff',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+        borderRadius: 24,
+      }}
+    >
       <Header
         members={members}
         currentUser={currentUser}
