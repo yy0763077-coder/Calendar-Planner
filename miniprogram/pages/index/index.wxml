@@ -1,0 +1,344 @@
+<view class="page">
+  <!-- ===== Top Section ===== -->
+  <view class="top-section">
+    <view style="height: {{statusBarHeight}}px;"></view>
+
+    <!-- Header -->
+    <view class="header" style="padding-right: {{headerRightPadding || 96}}rpx;">
+      <view class="header-btn" bindtap="onMenuClick">
+        <view class="menu-line"></view>
+        <view class="menu-line"></view>
+        <view class="menu-line"></view>
+      </view>
+      <view class="header-right" bindtap="toggleDropdown">
+        <view class="avatar-circle" wx:if="{{currentUser}}"
+              style="background: {{currentUser.color.bg}}; border-color: {{currentUser.color.text}};">
+          <text class="avatar-text avatar-fullname">{{currentUser.name}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Month Navigation -->
+    <view class="month-nav">
+      <view class="arrow-btn" bindtap="onPrevMonth">
+        <view class="arrow-icon left"></view>
+      </view>
+      <view class="month-title" bindtap="onMonthClick">
+        <text class="month-text">{{monthName}} {{year}}</text>
+      </view>
+      <view class="arrow-btn" bindtap="onNextMonth">
+        <view class="arrow-icon right"></view>
+      </view>
+    </view>
+
+    <!-- Group Bar -->
+    <view wx:if="{{currentGroup}}" class="group-bar" bindtap="onSwitchGroup">
+      <text class="group-bar-name">{{currentGroup.name}}</text>
+      <text class="group-bar-arrow">▾</text>
+    </view>
+
+    <!-- Weekday Bar -->
+    <view class="weekday-bar">
+      <view wx:for="{{weekdays}}" wx:key="*this" class="weekday-cell {{index === 0 ? 'sunday' : ''}}">
+        <text>{{item}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== Calendar Grid ===== -->
+  <scroll-view scroll-y class="calendar-scroll" style="height: {{calendarHeight}}px;"
+      bindtouchstart="onCalendarTouchStart" bindtouchend="onCalendarTouchEnd">
+    <view class="calendar-pad">
+      <view class="calendar-grid">
+        <view wx:for="{{weeks}}" wx:key="index" class="calendar-row">
+          <view wx:for="{{item}}" wx:for-item="day" wx:for-index="dayIdx" wx:key="dayIdx"
+                class="day-cell {{day.empty ? 'empty' : ''}} {{day.isToday ? 'today' : ''}}"
+                bindtap="onDayClick" data-day="{{day.day}}">
+            <block wx:if="{{!day.empty}}">
+              <view class="day-cell-top">
+                <view wx:if="{{day.isRestDay}}" class="holiday-badge">
+                  <text>休</text>
+                </view>
+                <view wx:if="{{day.lunar || day.holidayName}}" class="lunar-badge"
+                      style="color: {{day.isSolarTerm ? '#D4A0C0' : (day.isHoliday || day.holidayName) ? '#F87171' : '#94A3B8'}};">
+                  {{day.holidayName || day.lunar}}
+                </view>
+              </view>
+              <view class="day-header">
+                <text class="day-num"
+                      style="color: {{day.isSunday ? '#F87171' : day.isToday ? '#2E7D32' : '#0F172A'}};">
+                  {{day.day}}
+                </text>
+              </view>
+              <view class="day-events">
+                <view wx:for="{{day.events}}" wx:for-item="evt" wx:for-index="evtIdx" wx:key="id"
+                      class="event-tag" style="background: {{evt.color}};"
+                      catchtap="onEventClick" data-event-id="{{evt.id}}" data-day="{{day.day}}">
+                  <text class="event-text" style="color: {{evt.textColor}};">{{evt.title}}</text>
+                </view>
+              </view>
+            </block>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- ===== Bell FAB (notification auth) ===== -->
+  <view class="bell-fab" bindtap="onBellTap">
+    <text class="bell-icon">🔔</text>
+  </view>
+
+  <!-- ===== Group Gate (no group) ===== -->
+  <view wx:if="{{groupGateVisible}}" class="modal-overlay show" style="z-index: 220; justify-content: center; align-items: center;">
+    <view class="group-gate" catchtap="noop">
+      <text class="group-gate-title">选择操作</text>
+      <view class="group-gate-btns">
+        <view class="group-gate-btn primary" bindtap="onShowCreateGroup">
+          <text>创建组</text>
+          <text class="group-gate-desc">新建一个组，邀请好友加入</text>
+        </view>
+        <view class="group-gate-btn" bindtap="onShowJoinGroup">
+          <text>加入组</text>
+          <text class="group-gate-desc">输入邀请码加入已有组</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== Create Group ===== -->
+  <view wx:if="{{createGroupVisible}}" class="modal-overlay show" style="z-index: 230; justify-content: center; align-items: center;" bindtap="closeCreateGroup">
+    <view class="group-form" catchtap="noop">
+      <text class="group-form-title">创建组</text>
+      <input class="group-form-input" value="{{newGroupName}}" bindinput="onNewGroupNameInput" placeholder="输入组名称" />
+      <view class="group-form-btns">
+        <button class="group-form-cancel" bindtap="closeCreateGroup">取消</button>
+        <button class="group-form-confirm" bindtap="onCreateGroup">创建</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== Join Group ===== -->
+  <view wx:if="{{joinGroupVisible}}" class="modal-overlay show" style="z-index: 230; justify-content: center; align-items: center;" bindtap="closeJoinGroup">
+    <view class="group-form" catchtap="noop">
+      <text class="group-form-title">加入组</text>
+      <input class="group-form-input" value="{{joinInviteCode}}" bindinput="onJoinCodeInput" placeholder="输入6位邀请码" maxlength="6" />
+      <view class="group-form-btns">
+        <button class="group-form-cancel" bindtap="closeJoinGroup">取消</button>
+        <button class="group-form-confirm" bindtap="onJoinGroup">加入</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== Join Success Modal (邀请链接/邀请码加入成功) ===== -->
+  <view wx:if="{{joinSuccessVisible}}" class="modal-overlay show" style="z-index: 240; justify-content: center; align-items: center;" bindtap="closeJoinSuccess">
+    <view class="join-success-card" catchtap="noop">
+      <view class="join-success-icon">✓</view>
+      <text class="join-success-title">成功加入组</text>
+      <text class="join-success-group">{{joinSuccessGroupName}}</text>
+      <text class="join-success-desc" wx:if="{{joinSuccessViaLink}}">你已通过邀请链接加入该组，可以与小组成员一起查看和编辑日历行程啦～</text>
+      <text class="join-success-desc" wx:else>你已通过邀请码加入该组，可以与小组成员一起查看和编辑日历行程啦～</text>
+      <view class="join-success-tips">
+        <text>• 点击头像切换身份查看各自的行程</text>
+        <text>• 在组管理中可修改自己的名字和颜色</text>
+        <text>• 邀请码与链接可在组管理中分享给好友</text>
+      </view>
+      <view class="join-success-btn" bindtap="closeJoinSuccess">知道了</view>
+    </view>
+  </view>
+
+  <!-- ===== Group Switcher ===== -->
+  <view wx:if="{{groupSwitcherVisible}}" class="modal-overlay show" style="z-index: 210; justify-content: center; align-items: center;" bindtap="closeGroupSwitcher">
+    <view class="group-switcher" catchtap="noop">
+      <text class="group-switcher-title">切换组</text>
+      <view class="group-switcher-list">
+        <view wx:for="{{myGroups}}" wx:key="_id" class="group-switcher-item {{item._id === currentGroupId ? 'active' : ''}}"
+              bindtap="onSelectGroup" data-id="{{item._id}}">
+          <text>{{item.name}}</text>
+          <text wx:if="{{item._id === currentGroupId}}" class="group-switcher-check">✓</text>
+        </view>
+      </view>
+      <view class="group-switcher-new" bindtap="onShowCreateGroup">
+        <text class="group-switcher-new-icon">+</text>
+        <text>创建新组</text>
+      </view>
+      <view class="group-switcher-new join" bindtap="onShowJoinGroup">
+        <text class="group-switcher-new-icon">↗</text>
+        <text>加入别人的组</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== Edit Profile ===== -->
+  <view wx:if="{{editProfileVisible}}" class="modal-overlay show" style="z-index: 240; justify-content: center; align-items: center;" bindtap="closeEditProfile">
+    <view class="edit-profile-modal" catchtap="noop">
+      <text class="edit-profile-title">编辑资料</text>
+      <view class="edit-profile-field">
+        <text class="edit-profile-label">名称</text>
+        <input class="edit-profile-input" value="{{editProfileName}}" bindinput="onEditProfileNameInput" placeholder="你的称呼" />
+      </view>
+      <view class="edit-profile-field">
+        <text class="edit-profile-label">专属颜色</text>
+        <view class="edit-profile-colors">
+          <view wx:for="{{colorOptions}}" wx:key="bg"
+                class="edit-profile-color {{editProfileColorIdx === index ? 'active' : ''}}"
+                style="background: {{item.bg}}; border-color: {{item.text}};"
+                bindtap="onEditProfileColorSelect" data-idx="{{index}}"></view>
+        </view>
+      </view>
+      <view class="edit-profile-btns">
+        <button class="edit-profile-cancel" bindtap="closeEditProfile">取消</button>
+        <button class="edit-profile-save" bindtap="onSaveEditProfile">保存</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== Role Picker (first-time) ===== -->
+  <view wx:if="{{rolePickerVisible}}" class="modal-overlay show" style="z-index: 200; justify-content: center; align-items: center;">
+    <view class="role-picker" catchtap="noop">
+      <text class="role-picker-title">选择你的角色</text>
+      <text class="role-picker-sub">选择后自动记住身份</text>
+      <view class="role-picker-list">
+        <view wx:for="{{members}}" wx:key="id" class="role-picker-item" bindtap="onSelectRole" data-id="{{item.id}}">
+          <view class="role-avatar" style="background: {{item.color.bg}}; border-color: {{item.color.text}};">
+            <text>{{item.initial}}</text>
+          </view>
+          <text class="role-name">{{item.name}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== User Dropdown ===== -->
+  <view wx:if="{{dropdownOpen}}" class="dropdown-mask" bindtap="closeDropdown">
+    <view class="dropdown-panel" style="top: {{dropdownTop}}px;" catchtap="noop">
+      <view class="dropdown-title"><text>切换用户</text></view>
+      <view class="dropdown-list">
+        <view wx:for="{{members}}" wx:key="id"
+              class="dropdown-item {{item.id === currentUserId ? 'active' : ''}}"
+              bindtap="onSwitchUser" data-id="{{item.id}}">
+          <view class="dropdown-avatar"
+                style="background: {{item.color.bg}}; border-color: {{item.id === currentUserId ? item.color.text : 'transparent'}};">
+            <text>{{item.initial}}</text>
+          </view>
+          <text class="dropdown-name">{{item.name}}</text>
+          <text wx:if="{{item.id === currentUserId}}" class="dropdown-check">✓</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== Event Modal ===== -->
+  <view wx:if="{{modalVisible}}" class="modal-overlay {{modalAnimating ? 'show' : ''}}" bindtap="closeEventModal">
+    <view class="modal-sheet {{modalAnimating ? 'show' : ''}}" catchtap="noop">
+      <view class="modal-handle"><view class="handle-bar"></view></view>
+      <view class="modal-content">
+        <view class="modal-header">
+          <view class="modal-title-group">
+            <text class="modal-title">{{editingEvent ? '编辑行程' : '创建行程'}}</text>
+            <text wx:if="{{displayDay}}" class="modal-day-text">— {{displayDay}} 日</text>
+          </view>
+          <view class="close-btn" bindtap="closeEventModal"><text>✕</text></view>
+        </view>
+        <view class="form-group">
+          <text class="form-label">行程内容</text>
+          <textarea class="form-textarea"
+                    value="{{eventTitle}}"
+                    bindinput="onTitleInput"
+                    placeholder="描述您的行程计划"
+                    maxlength="200"
+                    auto-height
+                    fixed />
+        </view>
+        <view class="form-actions">
+          <button class="btn-primary {{!titleValid ? 'disabled' : ''}}"
+                  bindtap="onSaveEvent" disabled="{{!titleValid}}">
+            {{editingEvent ? '保存修改' : '创建行程'}} →
+          </button>
+          <button wx:if="{{editingEvent}}" class="btn-danger" bindtap="onDeleteEvent">
+            删除行程
+          </button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== Month Picker ===== -->
+  <view wx:if="{{pickerVisible}}" class="modal-overlay center {{pickerAnimating ? 'show' : ''}}" bindtap="closeMonthPicker">
+    <view class="picker-panel {{pickerAnimating ? 'show' : ''}}" catchtap="noop">
+      <view class="picker-header">
+        <view class="arrow-btn small" bindtap="onPickerPrevYear">
+          <view class="arrow-icon left small"></view>
+        </view>
+        <text class="picker-year">{{pickerYear}} 年</text>
+        <view class="arrow-btn small" bindtap="onPickerNextYear">
+          <view class="arrow-icon right small"></view>
+        </view>
+      </view>
+      <view class="month-grid">
+        <view wx:for="{{monthNames}}" wx:key="index"
+              class="month-item {{pickerYear === year && (index + 1) === month ? 'current' : ''}}"
+              bindtap="onSelectMonth" data-month="{{index + 1}}">
+          <text>{{item}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== Member Modal ===== -->
+  <view wx:if="{{memberVisible}}" class="modal-overlay {{memberAnimating ? 'show' : ''}}" bindtap="closeMemberModal">
+    <view class="modal-sheet {{memberAnimating ? 'show' : ''}}" catchtap="noop">
+      <view class="modal-handle"><view class="handle-bar"></view></view>
+      <view class="modal-content">
+        <view class="modal-header">
+          <text class="modal-title">组管理</text>
+          <view class="close-btn" bindtap="closeMemberModal"><text>✕</text></view>
+        </view>
+        <view wx:if="{{currentGroup}}" class="member-invite-inline">
+          <view class="member-invite-row">
+            <text>邀请码 {{currentGroup.inviteCode}}</text>
+            <text class="member-invite-copy" bindtap="onCopyInviteCode">复制</text>
+            <text class="member-invite-sep">|</text>
+            <text class="member-invite-link" bindtap="onGenerateInviteLink">生成链接</text>
+          </view>
+          <text class="member-invite-tip">新成员需通过邀请码或邀请链接加入</text>
+        </view>
+
+        <scroll-view scroll-y style="max-height: 400rpx;" class="member-list">
+          <view wx:for="{{members}}" wx:key="id"
+                class="member-item {{item.id === currentUserId ? 'current' : ''}}"
+                bindtap="onMemberRowTap" data-id="{{item.id}}" data-is-me="{{item.isMe}}">
+            <view class="member-avatar member-avatar-fullname"
+                  style="background: {{item.color.bg}}; border-color: {{item.id === currentUserId ? item.color.text : '#fff'}};">
+              <text>{{item.name}}</text>
+            </view>
+            <view class="member-info">
+              <view class="member-name-row">
+                <text class="member-name">{{item.name}}</text>
+                <text wx:if="{{item.id === currentUserId}}" class="current-tag">当前</text>
+                <text wx:if="{{item.role === 'creator'}}" class="creator-tag">创建者</text>
+              </view>
+              <view class="member-color-row">
+                <view class="color-dot" style="background: {{item.color.bg}}; border: 2rpx solid {{item.color.text}};"></view>
+                <text class="color-label">专属颜色</text>
+              </view>
+            </view>
+            <view wx:if="{{item.isMe && item.id === currentUserId}}" class="member-edit-btn" catchtap="onShowEditProfile">
+              <text>编辑</text>
+            </view>
+            <view wx:if="{{myRole === 'creator' && !item.isMe && item.role !== 'creator'}}" class="member-remove-btn" catchtap="onRemoveMember" data-openid="{{item.openid}}" data-name="{{item.name}}">
+              <text>移出</text>
+            </view>
+          </view>
+        </scroll-view>
+
+        <view wx:if="{{myRole !== 'creator' && currentGroup}}" class="member-leave-row" bindtap="onLeaveGroup">
+          <text class="member-leave-text">退出该组</text>
+        </view>
+        <view wx:if="{{myRole === 'creator' && currentGroup}}" class="member-delete-row" bindtap="onDeleteGroup">
+          <text class="member-delete-text">删除该组</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

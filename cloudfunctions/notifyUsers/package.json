@@ -1,0 +1,9 @@
+{
+  "name": "notifyUsers",
+  "version": "1.0.0",
+  "description": "通知全部用户当天行程",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
