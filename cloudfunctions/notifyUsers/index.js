@@ -2,116 +2,68 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 
-const TEMPLATE_ID = 'dbYqfPJBdtx2jeglq9-qPwDhnj2G5jfRizKpb5NP8RU'
+// 临期物品提醒模板：物品名称 thing5, 剩余天数 number7, 备注 thing8
+const TEMPLATE_ID = 'wv3okX-DxGe93KfFwDA5sX9qubR5nDkuvOxthVgS5JE'
 
-function getMemberName(ev, memberProfilesMap) {
-  const key = (ev.groupId || '') + ':' + (ev.memberId || '')
-  if (memberProfilesMap[key]) return memberProfilesMap[key]
-  if (ev.memberName && ev.memberName.trim() !== '' && ev.memberName !== '未知') {
-    return ev.memberName.trim()
-  }
-  return '未知'
+function truncate(str, maxLen) {
+  if (!str) return ''
+  const s = String(str).trim()
+  return s.length > 20 ? s.substring(0, 17) + '...' : s
 }
 
 exports.main = async (event = {}) => {
-  let { year, month, day, groupId, mode, userName, eventTitle } = event
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const todayMs = today.getTime()
 
-  if (mode === 'delete' && groupId && userName !== undefined && eventTitle !== undefined) {
-    const timeStr = (() => {
-      const d = new Date();
-      const t = new Date(d.getTime() + (8 - d.getTimezoneOffset() / 60) * 3600 * 1000);
-      return t.getFullYear() + '年' + (t.getMonth() + 1) + '月' + t.getDate() + '日 ' + String(t.getHours()).padStart(2, '0') + ':' + String(t.getMinutes()).padStart(2, '0');
-    })();
-    const content = (userName || '未知') + '-删除了行程' + (eventTitle || '');
-    const thing9Val = content.length > 20 ? content.substring(0, 17) + '...' : content;
-    const gmRes = await db.collection('group_members').where({ groupId }).get();
-    const openids = (gmRes.data || []).map(m => m.openid).filter(Boolean);
-    let totalSent = 0;
-    for (const openid of openids) {
-      try {
-        await cloud.openapi.subscribeMessage.send({
-          touser: openid,
-          page: 'pages/index/index',
-          data: { time6: { value: timeStr }, thing9: { value: thing9Val }, thing15: { value: '删除提醒' } },
-          templateId: TEMPLATE_ID
-        });
-        totalSent++;
-      } catch (e) {}
-    }
-    return { success: true, sent: totalSent };
+  // 计算临期 1、2、3 天的日期
+  const expiringDates = []
+  for (let d = 1; d <= 3; d++) {
+    const dObj = new Date(today)
+    dObj.setDate(dObj.getDate() + d)
+    expiringDates.push({
+      year: dObj.getFullYear(),
+      month: dObj.getMonth() + 1,
+      day: dObj.getDate(),
+      daysLeft: d
+    })
   }
 
-  if (!year || !month || !day) {
-    const now = new Date()
-    const d = new Date(now.getTime() + (8 - now.getTimezoneOffset() / 60) * 3600 * 1000)
-    year = d.getFullYear()
-    month = d.getMonth() + 1
-    day = d.getDate()
+  const col = db.collection('events')
+  const allExpiring = []
+
+  for (const target of expiringDates) {
+    const res = await col
+      .where({
+        year: target.year,
+        month: target.month,
+        day: target.day
+      })
+      .limit(500)
+      .get()
+    const items = (res.data || []).map(ev => ({
+      ...ev,
+      daysLeft: target.daysLeft
+    }))
+    allExpiring.push(...items)
   }
 
-  year = Number(year)
-  month = Number(month)
-  day = Number(day)
-
-  const eventsWhere = { year, month, day }
-  if (groupId) eventsWhere.groupId = groupId
-  const eventsRes = await db.collection('events').where(eventsWhere).limit(200).get()
-  const allEvents = eventsRes.data || []
-  if (allEvents.length === 0) {
-    return { success: true, message: '当天无行程', sent: 0 }
+  if (allExpiring.length === 0) {
+    return { success: true, message: '无临期物品', sent: 0 }
   }
 
-  const memberProfilesMap = {}
-  if (groupId) {
-    const memberProfilesRes = await db.collection('member_profiles').where({ groupId }).limit(200).get()
-    for (const p of (memberProfilesRes.data || [])) {
-      const key = (p.groupId || '') + ':' + (p.memberId || '')
-      if (p.name) memberProfilesMap[key] = p.name
-    }
-    const gmRes = await db.collection('group_members').where({ groupId }).get()
-    for (const m of (gmRes.data || [])) {
-      const key = (m.groupId || '') + ':' + (m.memberId || '')
-      if (m.memberName) memberProfilesMap[key] = m.memberName
-    }
-  } else {
-    const memberProfilesRes = await db.collection('member_profiles').limit(500).get()
-    for (const p of (memberProfilesRes.data || [])) {
-      const key = (p.groupId || '') + ':' + (p.memberId || '')
-      if (p.name) memberProfilesMap[key] = p.name
-    }
-    const gmRes = await db.collection('group_members').limit(1000).get()
-    for (const m of (gmRes.data || [])) {
-      const key = (m.groupId || '') + ':' + (m.memberId || '')
-      if (m.memberName) memberProfilesMap[key] = m.memberName
-    }
-  }
-
+  // 按 groupId 分组，给每组的所有成员发送每条临期物品的通知
   const byGroup = {}
-  for (const ev of allEvents) {
-    const gid = ev.groupId || '_legacy'
+  for (const item of allExpiring) {
+    const gid = item.groupId || '_legacy'
     if (!byGroup[gid]) byGroup[gid] = []
-    byGroup[gid].push(ev)
+    byGroup[gid].push(item)
   }
 
   let totalSent = 0
 
   for (const gid of Object.keys(byGroup)) {
-    const events = byGroup[gid]
-    const parts = []
-    const nameSet = []
-    for (const ev of events) {
-      const name = getMemberName(ev, memberProfilesMap)
-      parts.push(name + '-' + ev.title)
-      if (!nameSet.includes(name)) nameSet.push(name)
-    }
-
-    let content = parts.join('，')
-    if (content.length > 20) content = content.substring(0, 17) + '...'
-    let participants = nameSet.join('，')
-    if (participants.length > 20) participants = participants.substring(0, 17) + '...'
-
-    const timeStr = year + '年' + month + '月' + day + '日 09:00'
-
+    const items = byGroup[gid]
     let openids = []
     if (gid === '_legacy') {
       const usersRes = await db.collection('users').limit(1000).get()
@@ -121,22 +73,30 @@ exports.main = async (event = {}) => {
       openids = (gmRes.data || []).map(m => m.openid).filter(Boolean)
     }
 
-    for (const openid of openids) {
-      try {
-        await cloud.openapi.subscribeMessage.send({
-          touser: openid,
-          page: 'pages/index/index',
-          data: {
-            time6: { value: timeStr },
-            thing9: { value: content },
-            thing15: { value: participants }
-          },
-          templateId: TEMPLATE_ID
-        })
-        totalSent++
-      } catch (e) {}
+    for (const item of items) {
+      const thing5 = truncate(item.title || '未命名', 20)
+      const number7 = String(item.daysLeft)
+      const thing8 = truncate(item.note || '无', 20)
+
+      for (const openid of openids) {
+        try {
+          await cloud.openapi.subscribeMessage.send({
+            touser: openid,
+            page: 'pages/index/index',
+            data: {
+              thing5: { value: thing5 },
+              number7: { value: number7 },
+              thing8: { value: thing8 }
+            },
+            templateId: TEMPLATE_ID
+          })
+          totalSent++
+        } catch (e) {
+          // 用户未订阅或模板不可用等，忽略
+        }
+      }
     }
   }
 
-  return { success: true, sent: totalSent }
+  return { success: true, sent: totalSent, itemsCount: allExpiring.length }
 }

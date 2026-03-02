@@ -1,5 +1,5 @@
 {
-  "description": "日历计划表",
+  "description": "冰箱物品记录",
   "miniprogramRoot": "miniprogram/",
   "cloudfunctionRoot": "cloudfunctions/",
   "setting": {
@@ -42,7 +42,7 @@
   },
   "compileType": "miniprogram",
   "libVersion": "3.3.4",
-  "appid": "wxad6b903e4fc3867a",
+  "appid": "wx2991bec0b8f93444",
   "projectname": "calendar-planner",
   "condition": {},
   "editorSetting": {
@@ -55,6 +55,6 @@
     "include": []
   },
   "cloudbaseConfig": {
-    "envId": "cloud1-3gdzw3i7958fdeec" 
+    "envId": "cloud1-3gdzw3i7958fdeec"
   }
 }

@@ -35,6 +35,7 @@ exports.main = async (event) => {
           data: {
             groupId,
             title: data.title,
+            note: (data.note || '').trim() || '',
             memberId: data.memberId,
             memberName,
             year: Number(data.year),
@@ -57,12 +58,29 @@ exports.main = async (event) => {
         return { success: true, _id: addRes._id }
       }
       case 'update': {
-        await col.doc(data._id).update({ data: { title: data.title } })
+        const updateData = { title: data.title }
+        if (data.note !== undefined) updateData.note = (data.note || '').trim() || ''
+        if (data.year !== undefined && data.month !== undefined && data.day !== undefined) {
+          updateData.year = Number(data.year)
+          updateData.month = Number(data.month)
+          updateData.day = Number(data.day)
+        }
+        await col.doc(data._id).update({ data: updateData })
         return { success: true }
       }
       case 'delete': {
         await col.doc(data._id).remove()
         return { success: true }
+      }
+      case 'deleteMany': {
+        const ids = data.ids || []
+        if (ids.length === 0) return { success: true, deleted: 0 }
+        for (const id of ids) {
+          try {
+            await col.doc(id).remove()
+          } catch (e) {}
+        }
+        return { success: true, deleted: ids.length }
       }
       case 'saveUser': {
         const openid = data.openid

@@ -1,30 +1,45 @@
 var calendar = require('../../utils/calendar');
 
 var now = new Date();
-var TEMPLATE_ID = 'dbYqfPJBdtx2jeglq9-qPwDhnj2G5jfRizKpb5NP8RU';
+// 临期物品提醒模板
+var TEMPLATE_ID = 'wv3okX-DxGe93KfFwDA5sX9qubR5nDkuvOxthVgS5JE';
+
+function getDaysLeft(year, month, day) {
+  var today = new Date();
+  var todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  var expDate = new Date(year, month - 1, day);
+  var expStart = new Date(expDate.getFullYear(), expDate.getMonth(), expDate.getDate());
+  var diff = Math.floor((expStart - todayStart) / (24 * 60 * 60 * 1000));
+  return diff;
+}
+
+function getUrgency(daysLeft) {
+  if (daysLeft < 0) return 'expired';
+  if (daysLeft === 0) return 'today';
+  if (daysLeft === 1) return 'day1';
+  if (daysLeft === 2) return 'day2';
+  if (daysLeft === 3) return 'day3';
+  return 'ok';
+}
+
+function formatExpiryDateStr(year, month, day) {
+  return year + '.' + month + '.' + day;
+}
+
 
 Page({
   data: {
     statusBarHeight: 0,
-    calendarHeight: 500,
-    dropdownTop: 100,
+    listHeight: 500,
 
-    year: now.getFullYear(),
-    month: now.getMonth() + 1,
-    monthName: calendar.MONTH_NAMES[now.getMonth()],
     members: [],
-    events: [],
+    items: [],
     currentUserId: '',
     currentUser: null,
     currentGroupId: '',
     currentGroup: null,
     myGroups: [],
 
-    weekdays: calendar.WEEKDAYS,
-    weeks: [],
-    monthNames: calendar.MONTH_NAMES,
-
-    rolePickerVisible: false,
     groupGateVisible: false,
     createGroupVisible: false,
     joinGroupVisible: false,
@@ -34,41 +49,24 @@ Page({
 
     modalVisible: false,
     modalAnimating: false,
-    editingEvent: null,
-    targetDay: null,
-    displayDay: null,
-    eventTitle: '',
-    titleValid: false,
+    editingItem: null,
+    itemName: '',
+    itemNote: '',
+    nameValid: false,
 
-    pickerVisible: false,
-    pickerAnimating: false,
-    pickerYear: now.getFullYear(),
+    countdownQuicks: [1, 2, 3, 4, 5],
+    countdownDays: '3',
 
     memberVisible: false,
     memberAnimating: false,
-    addingMember: false,
-    newMemberName: '',
-
-    editProfileVisible: false,
-    editProfileName: '',
-    editProfileColorIdx: 0,
 
     joinSuccessVisible: false,
     joinSuccessGroupName: '',
     joinSuccessViaLink: false,
 
     myRole: '',
-    dropdownOpen: false,
-
     headerRightPadding: 96,
-
-    colorOptions: [
-      { bg: 'rgba(181,232,224,0.4)', text: '#115E59' },
-      { bg: 'rgba(208,225,249,0.4)', text: '#1E40AF' },
-      { bg: 'rgba(246,198,234,0.3)', text: '#9D174D' },
-      { bg: 'rgba(255,214,165,0.4)', text: '#9A3412' },
-      { bg: 'rgba(226,209,249,0.4)', text: '#6B21A8' }
-    ],
+    hasExpired: false,
   },
 
   onLoad: function (options) {
@@ -94,15 +92,11 @@ Page({
     this._windowHeight = windowHeight;
     this._menuRight = menuRight;
     var headerRightPadding = menuRight > 0 ? Math.ceil((windowWidth - menuRight + 16) * 2) : 96;
-    this.setData({ statusBarHeight: statusBarHeight, dropdownTop: statusBarHeight + 60, headerRightPadding: headerRightPadding });
+    this.setData({ statusBarHeight: statusBarHeight, headerRightPadding: headerRightPadding });
 
     if (options && options.inviteCode) {
       this._pendingInviteCode = options.inviteCode;
     }
-    var d = this.data;
-    var days = calendar.generateCalendarDays(d.year, d.month, [], []);
-    var weeks = calendar.buildWeeks(d.year, d.month, days);
-    this.setData({ weeks: weeks });
     this.checkGroupAndLoad();
   },
 
@@ -114,7 +108,7 @@ Page({
   },
 
   onReady: function () {
-    this.computeCalendarHeight();
+    this.computeListHeight();
   },
 
   runBackfill: function () {
@@ -204,31 +198,37 @@ Page({
           wx.setStorageSync('selectedMemberId', savedId);
         }
 
-        var events = [];
+        var items = [];
         for (var k = 0; k < eventsRaw.length; k++) {
           var r = eventsRaw[k];
-          events.push({
-            _id: r._id,
-            id: r._id,
-            title: r.title,
-            memberId: r.memberId,
-            memberName: r.memberName || '',
-            year: r.year,
-            month: r.month,
-            day: r.day,
-            groupId: r.groupId
-          });
-        }
+          var daysLeft = getDaysLeft(r.year, r.month, r.day);
+            items.push({
+              _id: r._id,
+              id: r._id,
+              title: r.title,
+              note: r.note || '',
+              memberId: r.memberId,
+              memberName: r.memberName || '',
+              year: r.year,
+              month: r.month,
+              day: r.day,
+              groupId: r.groupId,
+              daysLeft: daysLeft,
+              urgency: getUrgency(daysLeft),
+              expiryDateStr: formatExpiryDateStr(r.year, r.month, r.day)
+            });
+          }
+          items.sort(function (a, b) { return a.daysLeft - b.daysLeft; });
+          var hasExpired = items.some(function (x) { return x.daysLeft < 0; });
 
         that.setData({
           members: members,
+          items: items,
+          hasExpired: hasExpired,
           currentUserId: savedId || '',
           currentUser: currentUser,
-          myRole: myRole,
-          events: events,
-          rolePickerVisible: !currentUser
+          myRole: myRole
         });
-        that.refreshCalendar();
       }
     });
   },
@@ -244,11 +244,11 @@ Page({
             wx.setStorageSync('currentGroupId', res.result.groupId);
             that.checkGroupAndLoad();
             if (res.result.message === '已在组内') {
-              wx.showToast({ title: '你已在组内', icon: 'none' });
+              wx.showToast({ title: '你已在此家庭内', icon: 'none' });
             } else {
               that.setData({
                 joinSuccessVisible: true,
-                joinSuccessGroupName: res.result.groupName || '该组',
+                joinSuccessGroupName: res.result.groupName || '该家庭',
                 joinSuccessViaLink: true
               });
             }
@@ -315,24 +315,60 @@ Page({
           wx.setStorageSync('selectedMemberId', savedId);
         }
 
-        that.setData({ members: members, currentUserId: savedId || '', currentUser: currentUser, myRole: myRole, rolePickerVisible: !currentUser });
-        if (onDone) onDone(); else that.refreshCalendar();
+        that.setData({ members: members, currentUserId: savedId || '', currentUser: currentUser, myRole: myRole });
+        if (onDone) onDone(); else that.loadItems();
       }
     });
   },
 
-  onSelectRole: function (e) {
-    var id = e.currentTarget.dataset.id;
+  loadItems: function (onDone) {
+    var that = this;
     var groupId = this.data.currentGroupId;
-    wx.setStorageSync('selectedMemberId_' + (groupId || ''), id);
-    wx.setStorageSync('selectedMemberId', id);
-    var members = this.data.members;
-    for (var i = 0; i < members.length; i++) {
-      if (members[i].id === id) {
-        this.setData({ currentUserId: id, currentUser: members[i], rolePickerVisible: false });
-        break;
-      }
-    }
+    wx.cloud.callFunction({
+      name: 'eventService',
+      data: { action: 'list', data: { groupId: groupId || '' } },
+      success: function (res) {
+        if (res.result && res.result.success) {
+          var records = res.result.data || [];
+          var items = [];
+          for (var i = 0; i < records.length; i++) {
+            var r = records[i];
+            var daysLeft = getDaysLeft(r.year, r.month, r.day);
+            items.push({
+              _id: r._id,
+              id: r._id,
+              title: r.title,
+              note: r.note || '',
+              memberId: r.memberId,
+              memberName: r.memberName || '',
+              year: r.year,
+              month: r.month,
+              day: r.day,
+              groupId: r.groupId,
+              daysLeft: daysLeft,
+              urgency: getUrgency(daysLeft),
+              expiryDateStr: formatExpiryDateStr(r.year, r.month, r.day)
+            });
+          }
+          items.sort(function (a, b) { return a.daysLeft - b.daysLeft; });
+          var hasExpired = items.some(function (x) { return x.daysLeft < 0; });
+          that.setData({ items: items, hasExpired: hasExpired });
+        }
+        if (onDone) onDone();
+      },
+      fail: function () { if (onDone) onDone(); }
+    });
+  },
+
+  computeListHeight: function () {
+    var that = this;
+    var wh = this._windowHeight || 0;
+    if (!wh) try { wh = wx.getWindowInfo().windowHeight; } catch (e) { wh = wx.getSystemInfoSync().windowHeight; }
+    var query = wx.createSelectorQuery();
+    query.select('.top-section').boundingClientRect();
+    query.exec(function (res) {
+      if (res[0]) that.setData({ listHeight: wh - res[0].bottom });
+    });
   },
 
   onShowCreateGroup: function () {
@@ -365,7 +401,7 @@ Page({
 
   onCreateGroup: function () {
     var name = this.data.newGroupName.trim();
-    if (!name) { wx.showToast({ title: '请输入组名', icon: 'none' }); return; }
+    if (!name) { wx.showToast({ title: '请输入家庭名称', icon: 'none' }); return; }
     var app = getApp();
     var openid = app.globalData.openid;
     if (!openid) { wx.showToast({ title: '请稍候', icon: 'none' }); return; }
@@ -385,8 +421,8 @@ Page({
             myGroups: that.data.myGroups.concat([{ _id: res.result.groupId, name: name, inviteCode: res.result.inviteCode }])
           });
           that.loadGroupMembersAndRole(res.result.groupId, { myMemberId: 'm1', myMemberName: '' });
-          that.loadEvents();
-          wx.showToast({ title: '组已创建', icon: 'success' });
+          that.loadItems();
+          wx.showToast({ title: '家庭已创建', icon: 'success' });
         } else {
           wx.showToast({ title: res.result && res.result.message || '失败', icon: 'none' });
         }
@@ -413,7 +449,7 @@ Page({
           that.setData({
             joinGroupVisible: false,
             joinSuccessVisible: true,
-            joinSuccessGroupName: res.result.groupName || '该组',
+            joinSuccessGroupName: res.result.groupName || '该家庭',
             joinSuccessViaLink: false
           });
         } else {
@@ -426,12 +462,12 @@ Page({
 
   onDeleteGroup: function () {
     var groupId = this.data.currentGroupId;
-    var groupName = this.data.currentGroup && this.data.currentGroup.name || '该组';
+    var groupName = this.data.currentGroup && this.data.currentGroup.name || '该家庭';
     if (!groupId) return;
     var that = this;
     wx.showModal({
-      title: '删除该组',
-      content: '删除「' + groupName + '」后，组内所有行程将一并清除且不可恢复。确定要删除吗？',
+      title: '删除该家庭',
+      content: '删除「' + groupName + '」后，家庭内所有物品将一并清除且不可恢复。确定要删除吗？',
       confirmText: '删除',
       confirmColor: '#F87171',
       success: function (res) {
@@ -445,7 +481,7 @@ Page({
                 wx.removeStorageSync('currentGroupId');
                 that.setData({ memberVisible: false, memberAnimating: false });
                 that.checkGroupAndLoad();
-                wx.showToast({ title: '组已删除', icon: 'success' });
+                wx.showToast({ title: '家庭已删除', icon: 'success' });
               } else {
                 wx.showToast({ title: ret.result && ret.result.message || '删除失败', icon: 'none' });
               }
@@ -463,7 +499,7 @@ Page({
     var that = this;
     wx.showModal({
       title: '确认退出',
-      content: '退出后你将无法查看该组的行程，需重新通过邀请码或链接加入。确定要退出吗？',
+      content: '退出后你将无法查看该家庭的物品，需重新通过邀请码或链接加入。确定要退出吗？',
       confirmText: '退出',
       confirmColor: '#F87171',
       success: function (res) {
@@ -495,8 +531,8 @@ Page({
     if (!targetOpenid) return;
     var that = this;
     wx.showModal({
-      title: '移出成员',
-      content: '确定要将「' + (targetName || '该成员') + '」移出该组吗？移出后对方需重新通过邀请码或链接加入。',
+      title: '移出家人',
+      content: '确定要将「' + (targetName || '该成员') + '」移出该家庭吗？移出后对方需重新通过邀请码或链接加入。',
       confirmText: '移出',
       confirmColor: '#F87171',
       success: function (res) {
@@ -537,7 +573,7 @@ Page({
         wx.setStorageSync('currentGroupId', gid);
         this.setData({ currentGroupId: gid, currentGroup: groups[i], groupSwitcherVisible: false });
         this.loadGroupMembersAndRole(gid, groups[i]);
-        this.loadEvents();
+        this.loadItems();
         break;
       }
     }
@@ -574,7 +610,7 @@ Page({
       fail: function () {
         wx.showModal({
           title: '分享邀请',
-          content: '可复制邀请码 ' + code + ' 发给好友，对方在「加入组」中输入即可加入',
+          content: '可复制邀请码 ' + code + ' 发给好友，对方在「加入家庭」中输入即可加入',
           showCancel: false
         });
       }
@@ -584,406 +620,249 @@ Page({
   onShareAppMessage: function () {
     var code = this.data.currentGroup && this.data.currentGroup.inviteCode;
     return {
-      title: '邀请你加入「' + (this.data.currentGroup && this.data.currentGroup.name || '') + '」',
+      title: '邀请你加入「' + (this.data.currentGroup && this.data.currentGroup.name || '') + '」- 冰箱物品记录',
       path: '/pages/index/index?inviteCode=' + (code || '')
     };
   },
 
-  onShowEditProfile: function () {
-    var u = this.data.currentUser;
-    if (!u) return;
-    var idx = 0;
-    for (var i = 0; i < calendar.EVENT_COLORS.length; i++) {
-      if (calendar.EVENT_COLORS[i].bg === u.color.bg) { idx = i; break; }
-    }
-    this.setData({ editProfileVisible: true, editProfileName: u.name, editProfileColorIdx: idx });
-  },
-
-  closeEditProfile: function () {
-    this.setData({ editProfileVisible: false });
-  },
-
-  onEditProfileNameInput: function (e) {
-    this.setData({ editProfileName: e.detail.value });
-  },
-
-  onEditProfileColorSelect: function (e) {
-    this.setData({ editProfileColorIdx: parseInt(e.currentTarget.dataset.idx, 10) });
-  },
-
-  onSaveEditProfile: function () {
-    var name = this.data.editProfileName.trim();
-    if (!name) { wx.showToast({ title: '请输入名字', icon: 'none' }); return; }
-    var idx = this.data.editProfileColorIdx;
-    var color = calendar.EVENT_COLORS[idx % calendar.EVENT_COLORS.length];
-    var app = getApp();
-    var openid = app.globalData.openid;
-    if (!openid) return;
-
-    var that = this;
-    wx.cloud.callFunction({
-      name: 'eventService',
-      data: { action: 'updateMemberProfile', data: { groupId: that.data.currentGroupId, openid: openid, memberName: name, color: color } },
-      success: function () {
-        that.setData({ editProfileVisible: false });
-        that.loadGroupMembersAndRole(that.data.currentGroupId, that.data.currentGroup);
-        that.loadEvents();
-        wx.showToast({ title: '已保存', icon: 'success' });
-      },
-      fail: function () { wx.showToast({ title: '保存失败', icon: 'none' }); }
+  onAddItem: function () {
+    this.setData({
+      editingItem: null,
+      itemName: '',
+      itemNote: '',
+      nameValid: false,
+      countdownDays: '3'
     });
+    this.showItemModal();
   },
 
-  loadEvents: function (onDone) {
-    var that = this;
-    var groupId = this.data.currentGroupId;
-    wx.cloud.callFunction({
-      name: 'eventService',
-      data: { action: 'list', data: { groupId: groupId || '' } },
-      success: function (res) {
-        if (res.result && res.result.success) {
-          var records = res.result.data || [];
-          var events = [];
-          for (var i = 0; i < records.length; i++) {
-            var r = records[i];
-            events.push({
-              _id: r._id,
-              id: r._id,
-              title: r.title,
-              memberId: r.memberId,
-              memberName: r.memberName || '',
-              year: r.year,
-              month: r.month,
-              day: r.day,
-              groupId: r.groupId
-            });
-          }
-          that.setData({ events: events });
-          if (onDone) onDone(); else that.refreshCalendar();
-        }
-      },
-      fail: function () { if (onDone) onDone(); else console.error('[DB] 加载日程失败'); }
+  onItemClick: function (e) {
+    var id = e.currentTarget.dataset.id;
+    var items = this.data.items;
+    var item = null;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].id === id) { item = items[i]; break; }
+    }
+    if (!item) return;
+    var daysStr = item.daysLeft >= 0 ? String(item.daysLeft) : '3';
+    this.setData({
+      editingItem: item,
+      itemName: item.title,
+      itemNote: item.note || '',
+      nameValid: !!(item.title && item.title.trim()),
+      countdownDays: daysStr
     });
+    this.showItemModal();
   },
 
-  computeCalendarHeight: function () {
-    var that = this;
-    var wh = this._windowHeight || 0;
-    if (!wh) try { wh = wx.getWindowInfo().windowHeight; } catch (e) { wh = wx.getSystemInfoSync().windowHeight; }
-    var query = wx.createSelectorQuery();
-    query.select('.top-section').boundingClientRect();
-    query.exec(function (res) {
-      if (res[0]) that.setData({ calendarHeight: wh - res[0].bottom });
-    });
-  },
-
-  refreshCalendar: function () {
-    var d = this.data;
-    var days = calendar.generateCalendarDays(d.year, d.month, d.events, d.members);
-    var weeks = calendar.buildWeeks(d.year, d.month, days);
-    this.setData({ weeks: weeks, monthName: calendar.MONTH_NAMES[d.month - 1] });
-  },
-
-  onCalendarTouchStart: function (e) {
-    this._touchStartX = e.touches && e.touches[0] ? e.touches[0].clientX : 0;
-    this._touchStartY = e.touches && e.touches[0] ? e.touches[0].clientY : 0;
-  },
-
-  onCalendarTouchEnd: function (e) {
-    var startX = this._touchStartX;
-    var startY = this._touchStartY;
-    if (startX == null) return;
-    var endX = e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientX : startX;
-    var endY = e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientY : startY;
-    var deltaX = endX - startX;
-    var deltaY = endY - startY;
-    if (Math.abs(deltaX) > 60 && Math.abs(deltaX) > Math.abs(deltaY)) {
-      if (deltaX > 0) {
-        this.onPrevMonth();
-      } else {
-        this.onNextMonth();
-      }
-    }
-  },
-
-  onPrevMonth: function () {
-    var year = this.data.year, month = this.data.month;
-    if (month === 1) { year--; month = 12; } else { month--; }
-    this.setData({ year: year, month: month });
-    this.refreshCalendar();
-    var that = this;
-    setTimeout(function () { that.computeCalendarHeight(); }, 100);
-  },
-
-  onNextMonth: function () {
-    var year = this.data.year, month = this.data.month;
-    if (month === 12) { year++; month = 1; } else { month++; }
-    this.setData({ year: year, month: month });
-    this.refreshCalendar();
-    var that = this;
-    setTimeout(function () { that.computeCalendarHeight(); }, 100);
-  },
-
-  onMonthClick: function () {
-    this.setData({ pickerYear: this.data.year, pickerVisible: true });
-    var that = this;
-    setTimeout(function () { that.setData({ pickerAnimating: true }); }, 50);
-  },
-
-  closeMonthPicker: function () {
-    this.setData({ pickerAnimating: false });
-    var that = this;
-    setTimeout(function () { that.setData({ pickerVisible: false }); }, 300);
-  },
-
-  onPickerPrevYear: function () { this.setData({ pickerYear: this.data.pickerYear - 1 }); },
-  onPickerNextYear: function () { this.setData({ pickerYear: this.data.pickerYear + 1 }); },
-
-  onSelectMonth: function (e) {
-    var month = e.currentTarget.dataset.month;
-    this.setData({ year: this.data.pickerYear, month: month });
-    this.refreshCalendar();
-    this.closeMonthPicker();
-    var that = this;
-    setTimeout(function () { that.computeCalendarHeight(); }, 400);
-  },
-
-  onDayClick: function (e) {
-    var day = e.currentTarget.dataset.day;
-    if (!day) return;
-    this.setData({ editingEvent: null, targetDay: day, displayDay: day, eventTitle: '', titleValid: false });
-    this.showEventModal();
-  },
-
-  onEventClick: function (e) {
-    var eventId = e.currentTarget.dataset.eventId;
-    var day = parseInt(e.currentTarget.dataset.day);
-    var events = this.data.events;
-    var ev = null;
-    for (var i = 0; i < events.length; i++) {
-      if (events[i].id === eventId) { ev = events[i]; break; }
-    }
-    if (ev) {
-      this.setData({ editingEvent: ev, targetDay: null, displayDay: day, eventTitle: ev.title, titleValid: !!ev.title.trim() });
-      this.showEventModal();
-    }
-  },
-
-  showEventModal: function () {
+  showItemModal: function () {
     this.setData({ modalVisible: true });
     var that = this;
     setTimeout(function () { that.setData({ modalAnimating: true }); }, 50);
   },
 
-  closeEventModal: function () {
+  closeItemModal: function () {
     this.setData({ modalAnimating: false });
     var that = this;
     setTimeout(function () {
-      that.setData({ modalVisible: false, editingEvent: null, targetDay: null, displayDay: null, eventTitle: '', titleValid: false });
+      that.setData({ modalVisible: false, editingItem: null, itemName: '', itemNote: '', nameValid: false });
     }, 300);
   },
 
-  onTitleInput: function (e) {
-    this.setData({ eventTitle: e.detail.value, titleValid: !!e.detail.value.trim() });
+  onItemNameInput: function (e) {
+    this.setData({ itemName: e.detail.value, nameValid: !!e.detail.value.trim() });
   },
 
-  onSaveEvent: function () {
+  onCountdownInput: function (e) {
+    var val = e.detail.value.replace(/\D/g, '');
+    this.setData({ countdownDays: val });
+  },
+
+  onCountdownQuick: function (e) {
+    var days = e.currentTarget.dataset.days;
+    this.setData({ countdownDays: String(days) });
+  },
+
+  onItemNoteInput: function (e) {
+    this.setData({ itemNote: e.detail.value });
+  },
+
+  onSaveItem: function () {
     var data = this.data;
-    var trimmed = data.eventTitle.trim();
+    var trimmed = data.itemName.trim();
     if (!trimmed) return;
+
+    var daysToAdd = parseInt(data.countdownDays, 10);
+    if (isNaN(daysToAdd) || daysToAdd < 1 || daysToAdd > 999) {
+      wx.showToast({ title: '请输入有效天数（1-999）', icon: 'none' });
+      return;
+    }
+    var today = new Date();
+    var expDate = new Date(today);
+    expDate.setDate(expDate.getDate() + daysToAdd);
+    var parsed = {
+      year: expDate.getFullYear(),
+      month: expDate.getMonth() + 1,
+      day: expDate.getDate()
+    };
 
     var that = this;
     var groupId = data.currentGroupId;
     var memberName = data.currentUser ? data.currentUser.name : '未知';
+    var note = (data.itemNote || '').trim();
 
-    var today = new Date();
-    var todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    var eventYear, eventMonth, eventDay;
-    if (data.editingEvent) {
-      eventYear = data.editingEvent.year;
-      eventMonth = data.editingEvent.month;
-      eventDay = data.editingEvent.day;
-    } else if (data.targetDay) {
-      eventYear = data.year;
-      eventMonth = data.month;
-      eventDay = data.targetDay;
-    } else {
-      this.closeEventModal();
-      return;
-    }
-    var eventDate = new Date(eventYear, eventMonth - 1, eventDay);
-    var isToday = eventDate.getTime() === todayStart.getTime();
-    var isFuture = eventDate >= todayStart;
+    var daysLeft = getDaysLeft(parsed.year, parsed.month, parsed.day);
+    var needSubscribe = daysLeft >= 1 && daysLeft <= 3;
 
     var doSave = function (subscribeAccepted) {
-      if (data.editingEvent) {
-        wx.cloud.callFunction({
-          name: 'eventService',
-          data: { action: 'update', data: { _id: data.editingEvent._id, title: trimmed } },
-          success: function () {
-            that.loadEvents();
-            if (isToday && subscribeAccepted) that.sendNotifyForDate(eventYear, eventMonth, eventDay);
-          }
-        });
-      } else if (data.targetDay) {
+      if (data.editingItem) {
         wx.cloud.callFunction({
           name: 'eventService',
           data: {
-            action: 'add',
+            action: 'update',
             data: {
-              groupId: groupId || '',
+              _id: data.editingItem._id,
               title: trimmed,
-              memberId: data.currentUserId,
-              memberName: memberName,
-              year: data.year,
-              month: data.month,
-              day: data.targetDay
+              note: note,
+              year: parsed.year,
+              month: parsed.month,
+              day: parsed.day
             }
           },
           success: function () {
-            that.loadEvents();
-            if (isToday && subscribeAccepted) that.sendNotifyForDate(eventYear, eventMonth, eventDay);
+            that.loadItems();
           }
         });
+        that.closeItemModal();
+        return;
       }
-      that.closeEventModal();
-    };
 
-    if (eventDate < todayStart) {
-      doSave(false);
-      return;
-    }
-
-    if (isToday || isFuture) {
-      var tryRequest = function () {
-        wx.requestSubscribeMessage({
-          tmplIds: [TEMPLATE_ID],
-          success: function (res) {
-            var accepted = res[TEMPLATE_ID] === 'accept';
-            doSave(accepted);
-            if (isFuture && !isToday && accepted) wx.showToast({ title: '届时将发送通知', icon: 'success' });
-          },
-          fail: function () { doSave(false); }
-        });
-      };
-      that.checkSubscribeAccepted(function (accepted) {
-        if (accepted) {
-          doSave(true);
-          if (isFuture && !isToday) wx.showToast({ title: '届时将发送通知', icon: 'success' });
-        } else {
-          tryRequest();
-        }
-      });
-    } else {
-      doSave(false);
-    }
-  },
-
-  syncGroupPersonas: function () {
-    var members = this.data.members;
-    var groupId = this.data.currentGroupId;
-    if (!groupId || !members.length) return;
-    var personas = members.map(function (m) { return { id: m.id, name: m.name }; });
-    wx.cloud.callFunction({
-      name: 'eventService',
-      data: { action: 'syncGroupPersonas', data: { groupId: groupId, personas: personas } }
-    });
-  },
-
-  onDeleteEvent: function () {
-    var ev = this.data.editingEvent;
-    if (!ev) return;
-    var evYear = ev.year, evMonth = ev.month, evDay = ev.day;
-    var that = this;
-
-    var today = new Date();
-    var todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    var eventDate = new Date(evYear, evMonth - 1, evDay);
-    var isToday = eventDate.getTime() === todayStart.getTime();
-    var isFuture = eventDate >= todayStart;
-
-    var doDelete = function (subscribeAccepted) {
-      var delTitle = ev.title || '';
-      var delUserName = (that.data.currentUser && that.data.currentUser.name) || '未知';
       wx.cloud.callFunction({
         name: 'eventService',
-        data: { action: 'delete', data: { _id: ev._id } },
+        data: {
+          action: 'add',
+          data: {
+            groupId: groupId || '',
+            title: trimmed,
+            note: note,
+            memberId: data.currentUserId,
+            memberName: memberName,
+            year: parsed.year,
+            month: parsed.month,
+            day: parsed.day
+          }
+        },
         success: function () {
-          that.loadEvents();
-          if (isToday && subscribeAccepted) {
-            that.sendDeleteNotify(delUserName, delTitle);
+          that.loadItems();
+          if (needSubscribe && subscribeAccepted) {
+            wx.showToast({ title: '已添加，临期将收到提醒', icon: 'success' });
           }
         }
       });
-      that.closeEventModal();
+      that.closeItemModal();
     };
 
-    if (eventDate < todayStart) {
-      doDelete(false);
-      return;
-    }
-
-    if (isToday || isFuture) {
-      var tryRequest = function () {
-        wx.requestSubscribeMessage({
-          tmplIds: [TEMPLATE_ID],
-          success: function (res) {
-            var accepted = res[TEMPLATE_ID] === 'accept';
-            doDelete(accepted);
-            if (isFuture && !isToday && accepted) wx.showToast({ title: '届时将发送通知', icon: 'success' });
-          },
-          fail: function () { doDelete(false); }
-        });
-      };
-      that.checkSubscribeAccepted(function (accepted) {
-        if (accepted) {
-          doDelete(true);
-          if (isFuture && !isToday) wx.showToast({ title: '届时将发送通知', icon: 'success' });
-        } else {
-          tryRequest();
-        }
+    if (needSubscribe && !data.editingItem) {
+      wx.requestSubscribeMessage({
+        tmplIds: [TEMPLATE_ID],
+        success: function (res) {
+          var accepted = res[TEMPLATE_ID] === 'accept';
+          doSave(accepted);
+        },
+        fail: function () { doSave(false); }
       });
     } else {
-      doDelete(false);
+      doSave(false);
     }
   },
 
-  sendNotifyForDate: function (year, month, day) {
-    var groupId = this.data.currentGroupId || '';
-    wx.cloud.callFunction({
-      name: 'notifyUsers',
-      data: { year: year, month: month, day: day, groupId: groupId },
+  onQuickDelete: function (e) {
+    var id = e.currentTarget.dataset.id;
+    var items = this.data.items;
+    var item = null;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].id === id) { item = items[i]; break; }
+    }
+    if (!item) return;
+    var that = this;
+    wx.showModal({
+      title: '删除物品',
+      content: '确定要删除「' + (item.title || '') + '」吗？',
+      confirmText: '删除',
+      confirmColor: '#F87171',
       success: function (res) {
-        if (res.result && res.result.success) {
-          wx.showToast({ title: '已通知 ' + (res.result.sent || 0) + ' 位成员', icon: 'success' });
+        if (res.confirm) {
+          wx.cloud.callFunction({
+            name: 'eventService',
+            data: { action: 'delete', data: { _id: item._id } },
+            success: function () {
+              that.loadItems();
+              wx.showToast({ title: '已删除', icon: 'success' });
+            },
+            fail: function () { wx.showToast({ title: '删除失败', icon: 'none' }); }
+          });
         }
       }
     });
   },
 
-  sendDeleteNotify: function (userName, eventTitle) {
-    var groupId = this.data.currentGroupId || '';
-    if (!groupId) return;
-    wx.cloud.callFunction({
-      name: 'notifyUsers',
-      data: { mode: 'delete', groupId: groupId, userName: userName, eventTitle: eventTitle },
+  onClearExpired: function () {
+    var items = this.data.items;
+    var expired = items.filter(function (x) { return x.daysLeft < 0; });
+    if (expired.length === 0) {
+      wx.showToast({ title: '暂无过期物品', icon: 'none' });
+      return;
+    }
+    var that = this;
+    wx.showModal({
+      title: '清除过期物品',
+      content: '确定要删除 ' + expired.length + ' 件过期物品吗？',
+      confirmText: '清除',
+      confirmColor: '#F87171',
       success: function (res) {
-        if (res.result && res.result.success && (res.result.sent || 0) > 0) {
-          wx.showToast({ title: '已通知 ' + res.result.sent + ' 位成员', icon: 'success' });
+        if (res.confirm) {
+          var ids = expired.map(function (x) { return x._id; });
+          wx.cloud.callFunction({
+            name: 'eventService',
+            data: { action: 'deleteMany', data: { ids: ids } },
+            success: function (ret) {
+              if (ret.result && ret.result.success) {
+                that.loadItems();
+                wx.showToast({ title: '已清除 ' + ret.result.deleted + ' 件', icon: 'success' });
+              } else {
+                wx.showToast({ title: '清除失败', icon: 'none' });
+              }
+            },
+            fail: function () { wx.showToast({ title: '清除失败', icon: 'none' }); }
+          });
         }
       }
     });
   },
 
-  checkSubscribeAccepted: function (cb) {
-    wx.getSetting({
-      withSubscriptions: true,
+  onDeleteItem: function () {
+    var item = this.data.editingItem;
+    if (!item) return;
+    var that = this;
+    wx.showModal({
+      title: '删除物品',
+      content: '确定要删除「' + (item.title || '') + '」吗？',
+      confirmText: '删除',
+      confirmColor: '#F87171',
       success: function (res) {
-        var settings = res.subscriptionsSetting && res.subscriptionsSetting.itemSettings;
-        var accepted = settings && settings[TEMPLATE_ID] === 'accept';
-        cb(!!accepted);
-      },
-      fail: function () { cb(false); }
+        if (res.confirm) {
+          wx.cloud.callFunction({
+            name: 'eventService',
+            data: { action: 'delete', data: { _id: item._id } },
+            success: function () {
+              that.loadItems();
+              that.closeItemModal();
+              wx.showToast({ title: '已删除', icon: 'success' });
+            },
+            fail: function () { wx.showToast({ title: '删除失败', icon: 'none' }); }
+          });
+        }
+      }
     });
   },
 
@@ -991,14 +870,30 @@ Page({
     wx.requestSubscribeMessage({
       tmplIds: [TEMPLATE_ID],
       success: function (res) {
-        wx.showToast({ title: res[TEMPLATE_ID] === 'accept' ? '通知已授权' : '未开启通知', icon: res[TEMPLATE_ID] === 'accept' ? 'success' : 'none' });
+        if (res[TEMPLATE_ID] === 'accept') {
+          wx.showToast({ title: '通知已授权', icon: 'success' });
+        } else {
+          wx.showToast({ title: '未开启通知', icon: 'none' });
+        }
       },
-      fail: function () { wx.showToast({ title: '授权失败', icon: 'none' }); }
+      fail: function (err) {
+        var msg = '授权失败';
+        if (err && err.errMsg) {
+          if (err.errMsg.indexOf('user refuse') >= 0 || (err.errCode === 43101)) {
+            msg = '您已拒绝或关闭了通知';
+          } else if (err.errMsg.indexOf('cancel') >= 0 || (err.errCode === 43102)) {
+            msg = '已取消授权';
+          } else if (err.errMsg.indexOf('fail') >= 0) {
+            msg = '请检查：1.模板是否已添加到小程序 2.在真机测试';
+          }
+        }
+        wx.showToast({ title: msg, icon: 'none', duration: 2500 });
+      }
     });
   },
 
   onMenuClick: function () {
-    this.setData({ memberVisible: true, addingMember: false, newMemberName: '' });
+    this.setData({ memberVisible: true });
     var that = this;
     setTimeout(function () { that.setData({ memberAnimating: true }); }, 50);
   },
@@ -1007,34 +902,6 @@ Page({
     this.setData({ memberAnimating: false });
     var that = this;
     setTimeout(function () { that.setData({ memberVisible: false }); }, 300);
-  },
-
-  onMemberRowTap: function (e) {
-    this.switchUser(e.currentTarget.dataset.id);
-  },
-
-  onMemberClick: function (e) {
-    this.switchUser(e.currentTarget.dataset.id);
-  },
-
-  switchUser: function (id) {
-    var members = this.data.members;
-    for (var i = 0; i < members.length; i++) {
-      if (members[i].id === id) {
-        this.setData({ currentUserId: id, currentUser: members[i] });
-        return;
-      }
-    }
-  },
-
-
-
-  toggleDropdown: function () { this.setData({ dropdownOpen: !this.data.dropdownOpen }); },
-  closeDropdown: function () { this.setData({ dropdownOpen: false }); },
-
-  onSwitchUser: function (e) {
-    this.switchUser(e.currentTarget.dataset.id);
-    this.setData({ dropdownOpen: false });
   },
 
   noop: function () {},
