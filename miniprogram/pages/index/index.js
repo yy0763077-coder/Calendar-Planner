@@ -26,6 +26,35 @@ function formatExpiryDateStr(year, month, day) {
   return year + '.' + month + '.' + day;
 }
 
+// 按类型 tab 过滤物品（全部/冷藏/冷鲜/冷冻）
+function filterItemsByType(items, tab) {
+  if (!tab || tab === '全部') return items;
+  return items.filter(function (x) { return (x.type || '冷藏') === tab; });
+}
+
+// 按关键词过滤物品（搜索名称、备注）
+function filterItemsByKeyword(items, keyword) {
+  if (!keyword || !keyword.trim()) return items;
+  var k = keyword.trim().toLowerCase();
+  return items.filter(function (x) {
+    var title = (x.title || '').toLowerCase();
+    var note = (x.note || '').toLowerCase();
+    return title.indexOf(k) >= 0 || note.indexOf(k) >= 0;
+  });
+}
+
+// 检查用户是否已授权订阅消息（授权过则不再弹窗）
+function checkSubscribeAuthorized(callback) {
+  wx.getSetting({
+    withSubscriptions: true,
+    success: function (res) {
+      var itemSettings = res.subscriptionsSetting && res.subscriptionsSetting.itemSettings;
+      var accepted = itemSettings && itemSettings[TEMPLATE_ID] === 'accept';
+      callback(accepted);
+    },
+    fail: function () { callback(false); }
+  });
+}
 
 Page({
   data: {
@@ -67,6 +96,16 @@ Page({
     myRole: '',
     headerRightPadding: 96,
     hasExpired: false,
+
+    toastVisible: false,
+    toastText: '',
+
+    searchKeyword: '',
+    displayItems: [],
+
+    typeTabs: ['全部', '冷藏', '冷鲜', '冷冻'],
+    selectedTypeTab: '全部',
+    itemType: '冷藏',
   },
 
   onLoad: function (options) {
@@ -103,8 +142,7 @@ Page({
   onShow: function () {
     if (this._backfillScheduled) return;
     this._backfillScheduled = true;
-    var that = this;
-    setTimeout(function () { that.runBackfill(); }, 800);
+    this.runBackfill();
   },
 
   onReady: function () {
@@ -124,6 +162,7 @@ Page({
 
   checkGroupAndLoad: function () {
     var that = this;
+    wx.showLoading({ title: '加载中…', mask: true });
     getApp().getOpenid(function (openid) {
       that._doCheckGroupAndLoad(openid);
     });
@@ -131,11 +170,17 @@ Page({
 
   _doCheckGroupAndLoad: function (openid) {
     var that = this;
+    if (!openid) {
+      wx.hideLoading();
+      wx.showToast({ title: '获取用户信息失败', icon: 'none' });
+      return;
+    }
     var savedGid = wx.getStorageSync('currentGroupId');
     wx.cloud.callFunction({
       name: 'eventService',
       data: { action: 'getInitialData', data: { openid: openid, preferredGroupId: savedGid } },
       success: function (res) {
+        wx.hideLoading();
         if (!res.result || !res.result.success) return;
         var groups = res.result.groups || [];
         var currentGroupId = res.result.currentGroupId || '';
@@ -202,33 +247,40 @@ Page({
         for (var k = 0; k < eventsRaw.length; k++) {
           var r = eventsRaw[k];
           var daysLeft = getDaysLeft(r.year, r.month, r.day);
-            items.push({
-              _id: r._id,
-              id: r._id,
-              title: r.title,
-              note: r.note || '',
-              memberId: r.memberId,
-              memberName: r.memberName || '',
-              year: r.year,
-              month: r.month,
-              day: r.day,
-              groupId: r.groupId,
-              daysLeft: daysLeft,
-              urgency: getUrgency(daysLeft),
-              expiryDateStr: formatExpiryDateStr(r.year, r.month, r.day)
-            });
-          }
-          items.sort(function (a, b) { return a.daysLeft - b.daysLeft; });
-          var hasExpired = items.some(function (x) { return x.daysLeft < 0; });
-
+          items.push({
+            _id: r._id,
+            id: r._id,
+            title: r.title,
+            note: r.note || '',
+            memberId: r.memberId,
+            memberName: r.memberName || '',
+            year: r.year,
+            month: r.month,
+            day: r.day,
+            groupId: r.groupId,
+            type: r.type || '冷藏',
+            daysLeft: daysLeft,
+            urgency: getUrgency(daysLeft),
+            expiryDateStr: formatExpiryDateStr(r.year, r.month, r.day)
+          });
+        }
+        items.sort(function (a, b) { return a.daysLeft - b.daysLeft; });
+        var hasExpired = items.some(function (x) { return x.daysLeft < 0; });
+        var byType = filterItemsByType(items, that.data.selectedTypeTab || '全部');
+        var displayItems = filterItemsByKeyword(byType, that.data.searchKeyword || '');
         that.setData({
           members: members,
           items: items,
+          displayItems: displayItems,
           hasExpired: hasExpired,
           currentUserId: savedId || '',
           currentUser: currentUser,
           myRole: myRole
         });
+      },
+      fail: function () {
+        wx.hideLoading();
+        wx.showToast({ title: '加载失败', icon: 'none' });
       }
     });
   },
@@ -345,6 +397,7 @@ Page({
               month: r.month,
               day: r.day,
               groupId: r.groupId,
+              type: r.type || '冷藏',
               daysLeft: daysLeft,
               urgency: getUrgency(daysLeft),
               expiryDateStr: formatExpiryDateStr(r.year, r.month, r.day)
@@ -352,7 +405,9 @@ Page({
           }
           items.sort(function (a, b) { return a.daysLeft - b.daysLeft; });
           var hasExpired = items.some(function (x) { return x.daysLeft < 0; });
-          that.setData({ items: items, hasExpired: hasExpired });
+          var byType = filterItemsByType(items, that.data.selectedTypeTab || '全部');
+          var displayItems = filterItemsByKeyword(byType, that.data.searchKeyword || '');
+          that.setData({ items: items, displayItems: displayItems, hasExpired: hasExpired });
         }
         if (onDone) onDone();
       },
@@ -571,12 +626,31 @@ Page({
     for (var i = 0; i < groups.length; i++) {
       if (groups[i]._id === gid) {
         wx.setStorageSync('currentGroupId', gid);
-        this.setData({ currentGroupId: gid, currentGroup: groups[i], groupSwitcherVisible: false });
+        this.setData({ currentGroupId: gid, currentGroup: groups[i], groupSwitcherVisible: false, searchKeyword: '', selectedTypeTab: '全部' });
         this.loadGroupMembersAndRole(gid, groups[i]);
         this.loadItems();
         break;
       }
     }
+  },
+
+  onSearchInput: function (e) {
+    var keyword = (e.detail.value || '').trim();
+    var byType = filterItemsByType(this.data.items, this.data.selectedTypeTab || '全部');
+    var displayItems = filterItemsByKeyword(byType, keyword);
+    this.setData({ searchKeyword: e.detail.value, displayItems: displayItems });
+  },
+
+  onClearSearch: function () {
+    var byType = filterItemsByType(this.data.items, this.data.selectedTypeTab || '全部');
+    this.setData({ searchKeyword: '', displayItems: byType });
+  },
+
+  onSelectTypeTab: function (e) {
+    var tab = e.currentTarget.dataset.tab;
+    var byType = filterItemsByType(this.data.items, tab);
+    var displayItems = filterItemsByKeyword(byType, this.data.searchKeyword || '');
+    this.setData({ selectedTypeTab: tab, displayItems: displayItems });
   },
 
   onCopyInviteCode: function () {
@@ -630,6 +704,7 @@ Page({
       editingItem: null,
       itemName: '',
       itemNote: '',
+      itemType: '冷藏',
       nameValid: false,
       countdownDays: '3'
     });
@@ -649,10 +724,15 @@ Page({
       editingItem: item,
       itemName: item.title,
       itemNote: item.note || '',
+      itemType: item.type || '冷藏',
       nameValid: !!(item.title && item.title.trim()),
       countdownDays: daysStr
     });
     this.showItemModal();
+  },
+
+  onTypeQuick: function (e) {
+    this.setData({ itemType: e.currentTarget.dataset.type });
   },
 
   showItemModal: function () {
@@ -665,7 +745,7 @@ Page({
     this.setData({ modalAnimating: false });
     var that = this;
     setTimeout(function () {
-      that.setData({ modalVisible: false, editingItem: null, itemName: '', itemNote: '', nameValid: false });
+      that.setData({ modalVisible: false, editingItem: null, itemName: '', itemNote: '', itemType: '冷藏', nameValid: false });
     }, 300);
   },
 
@@ -714,6 +794,7 @@ Page({
     var daysLeft = getDaysLeft(parsed.year, parsed.month, parsed.day);
     var needSubscribe = daysLeft >= 1 && daysLeft <= 3;
 
+    var itemType = (that.data.itemType === '冷鲜' || that.data.itemType === '冷冻') ? that.data.itemType : '冷藏';
     var doSave = function (subscribeAccepted) {
       if (data.editingItem) {
         wx.cloud.callFunction({
@@ -726,7 +807,8 @@ Page({
               note: note,
               year: parsed.year,
               month: parsed.month,
-              day: parsed.day
+              day: parsed.day,
+              type: itemType
             }
           },
           success: function () {
@@ -749,13 +831,14 @@ Page({
             memberName: memberName,
             year: parsed.year,
             month: parsed.month,
-            day: parsed.day
+            day: parsed.day,
+            type: itemType
           }
         },
         success: function () {
           that.loadItems();
           if (needSubscribe && subscribeAccepted) {
-            wx.showToast({ title: '已添加，临期将收到提醒', icon: 'success' });
+            that.showCustomToast('已添加，到期前会收到提醒');
           }
         }
       });
@@ -763,13 +846,19 @@ Page({
     };
 
     if (needSubscribe && !data.editingItem) {
-      wx.requestSubscribeMessage({
-        tmplIds: [TEMPLATE_ID],
-        success: function (res) {
-          var accepted = res[TEMPLATE_ID] === 'accept';
-          doSave(accepted);
-        },
-        fail: function () { doSave(false); }
+      checkSubscribeAuthorized(function (alreadyAccepted) {
+        if (alreadyAccepted) {
+          doSave(true);
+          return;
+        }
+        wx.requestSubscribeMessage({
+          tmplIds: [TEMPLATE_ID],
+          success: function (res) {
+            var accepted = res[TEMPLATE_ID] === 'accept';
+            doSave(accepted);
+          },
+          fail: function () { doSave(false); }
+        });
       });
     } else {
       doSave(false);
@@ -867,28 +956,34 @@ Page({
   },
 
   onBellTap: function () {
-    wx.requestSubscribeMessage({
-      tmplIds: [TEMPLATE_ID],
-      success: function (res) {
-        if (res[TEMPLATE_ID] === 'accept') {
-          wx.showToast({ title: '通知已授权', icon: 'success' });
-        } else {
-          wx.showToast({ title: '未开启通知', icon: 'none' });
-        }
-      },
-      fail: function (err) {
-        var msg = '授权失败';
-        if (err && err.errMsg) {
-          if (err.errMsg.indexOf('user refuse') >= 0 || (err.errCode === 43101)) {
-            msg = '您已拒绝或关闭了通知';
-          } else if (err.errMsg.indexOf('cancel') >= 0 || (err.errCode === 43102)) {
-            msg = '已取消授权';
-          } else if (err.errMsg.indexOf('fail') >= 0) {
-            msg = '请检查：1.模板是否已添加到小程序 2.在真机测试';
-          }
-        }
-        wx.showToast({ title: msg, icon: 'none', duration: 2500 });
+    checkSubscribeAuthorized(function (alreadyAccepted) {
+      if (alreadyAccepted) {
+        wx.showToast({ title: '通知已授权', icon: 'success' });
+        return;
       }
+      wx.requestSubscribeMessage({
+        tmplIds: [TEMPLATE_ID],
+        success: function (res) {
+          if (res[TEMPLATE_ID] === 'accept') {
+            wx.showToast({ title: '通知已授权', icon: 'success' });
+          } else {
+            wx.showToast({ title: '未开启通知', icon: 'none' });
+          }
+        },
+        fail: function (err) {
+          var msg = '授权失败';
+          if (err && err.errMsg) {
+            if (err.errMsg.indexOf('user refuse') >= 0 || (err.errCode === 43101)) {
+              msg = '您已拒绝或关闭了通知';
+            } else if (err.errMsg.indexOf('cancel') >= 0 || (err.errCode === 43102)) {
+              msg = '已取消授权';
+            } else if (err.errMsg.indexOf('fail') >= 0) {
+              msg = '请检查：1.模板是否已添加到小程序 2.在真机测试';
+            }
+          }
+          wx.showToast({ title: msg, icon: 'none', duration: 2500 });
+        }
+      });
     });
   },
 
@@ -905,4 +1000,15 @@ Page({
   },
 
   noop: function () {},
+
+  showCustomToast: function (text, duration) {
+    var that = this;
+    duration = duration || 2000;
+    this.setData({ toastVisible: true, toastText: text });
+    if (this._toastTimer) clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(function () {
+      that.setData({ toastVisible: false });
+      that._toastTimer = null;
+    }, duration);
+  },
 });

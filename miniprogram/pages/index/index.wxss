@@ -65,19 +65,23 @@
    Page Title
    ========================================== */
 .title-row {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 16rpx 32rpx 8rpx;
   gap: 24rpx;
 }
 
 .page-title {
+  position: absolute;
+  left: 0;
+  right: 0;
   font-size: 40rpx;
   font-weight: 700;
   color: #0F172A;
-  flex: 1;
   text-align: center;
+  pointer-events: none;
 }
 
 .clear-expired-btn {
@@ -88,6 +92,45 @@
   background: rgba(148, 163, 184, 0.2);
   border-radius: 16rpx;
   flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* 自定义 Toast（符合项目风格） */
+.custom-toast {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2000;
+  padding: 32rpx 48rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  box-shadow: 0 8rpx 32rpx rgba(15, 23, 42, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+  animation: toast-fade 0.25s ease;
+}
+
+.custom-toast-icon {
+  font-size: 48rpx;
+  color: #0F172A;
+}
+
+.custom-toast-text {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #334155;
+  text-align: center;
+  max-width: 420rpx;
+  word-break: keep-all;
+}
+
+@keyframes toast-fade {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
 /* ==========================================
@@ -99,13 +142,14 @@
 }
 
 .item-list {
-  padding: 20rpx 32rpx 120rpx;
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
+  padding: 16rpx 24rpx 120rpx;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
 }
 
 .empty-state {
+  grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -135,14 +179,13 @@
 
 .item-card {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16rpx;
+  flex-direction: column;
   background: #fff;
-  border-radius: 20rpx;
-  padding: 20rpx 28rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
-  border-left: 6rpx solid #E2E8F0;
+  border-radius: 14rpx;
+  padding: 10rpx 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  border-left: 4rpx solid #E2E8F0;
+  min-height: 0;
 }
 
 .item-main {
@@ -150,8 +193,33 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: 2rpx;
 }
+
+.item-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  flex-wrap: wrap;
+}
+
+.item-type-tag {
+  font-size: 18rpx;
+  color: #0D9488;
+  background: rgba(181, 232, 224, 0.35);
+  padding: 0 6rpx;
+  border-radius: 4rpx;
+}
+
+.item-expiry-text {
+  font-size: 20rpx;
+  color: #64748B;
+}
+
+.item-expiry-text.day3 { color: #0D9488; font-weight: 600; }
+.item-expiry-text.day2 { color: #D97706; font-weight: 600; }
+.item-expiry-text.day1, .item-expiry-text.today { color: #DC2626; font-weight: 700; }
+.item-expiry-text.expired { color: #94A3B8; }
 
 /* 仅三天内到期的物品有颜色提示 */
 .item-card.day3 {
@@ -187,55 +255,37 @@
 }
 
 .item-delete-btn {
-  flex-shrink: 0;
-  width: 56rpx;
-  height: 56rpx;
+  align-self: flex-end;
+  margin-top: 2rpx;
+  width: 40rpx;
+  height: 40rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: rgba(248, 113, 113, 0.15);
+  background: rgba(248, 113, 113, 0.12);
 }
 
 .item-delete-icon {
-  font-size: 32rpx;
+  font-size: 22rpx;
 }
 
 .item-name {
-  font-size: 30rpx;
+  font-size: 24rpx;
   font-weight: 700;
   color: #0F172A;
-}
-
-.item-expiry-row {
-  font-size: 24rpx;
-  color: #64748B;
-}
-
-.item-expiry-row.day3 {
-  color: #0D9488;
-  font-weight: 600;
-}
-
-.item-expiry-row.day2 {
-  color: #D97706;
-  font-weight: 600;
-}
-
-.item-expiry-row.day1,
-.item-expiry-row.today {
-  color: #DC2626;
-  font-weight: 700;
-}
-
-.item-expiry-row.expired {
-  color: #64748B;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .item-note {
-  font-size: 24rpx;
+  font-size: 18rpx;
   color: #94A3B8;
-  line-height: 1.5;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Add FAB */
@@ -281,6 +331,77 @@
 .group-bar-arrow {
   font-size: 20rpx;
   color: #94A3B8;
+}
+
+/* ==========================================
+   Type Tabs
+   ========================================== */
+.type-tabs {
+  display: flex;
+  padding: 12rpx 32rpx 4rpx;
+  gap: 16rpx;
+}
+
+.type-tab {
+  flex: 1;
+  text-align: center;
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #94A3B8;
+  padding: 16rpx 0;
+  border-radius: 16rpx;
+  transition: all 0.2s;
+}
+
+.type-tab.active {
+  background: rgba(181, 232, 224, 0.4);
+  color: #0D9488;
+  font-weight: 600;
+  border: 2rpx solid rgba(181, 232, 224, 0.6);
+}
+
+/* ==========================================
+   Search Bar
+   ========================================== */
+.search-bar {
+  padding: 12rpx 32rpx 16rpx;
+}
+
+.search-inner {
+  display: flex;
+  align-items: center;
+  background: rgba(241, 245, 249, 0.8);
+  border-radius: 20rpx;
+  padding: 16rpx 24rpx;
+  gap: 12rpx;
+}
+
+.search-icon {
+  font-size: 28rpx;
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #0F172A;
+  min-width: 0;
+}
+
+.search-input::placeholder {
+  color: #94A3B8;
+}
+
+.search-clear {
+  font-size: 24rpx;
+  color: #94A3B8;
+  padding: 8rpx;
+  flex-shrink: 0;
+}
+
+.search-empty .empty-hint {
+  color: #64748B;
+  text-decoration: underline;
 }
 
 /* ==========================================
@@ -783,6 +904,34 @@
 
 .countdown-input {
   margin-top: 0;
+}
+
+.type-quick-row {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 12rpx;
+}
+
+.type-quick-btn {
+  flex: 1;
+  height: 72rpx;
+  line-height: 72rpx;
+  text-align: center;
+  background: rgba(246, 198, 234, 0.12);
+  border: 2rpx solid rgba(246, 198, 234, 0.35);
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #9D174D;
+  transition: all 0.2s;
+}
+
+.type-quick-btn.active {
+  background: rgba(181, 232, 224, 0.45);
+  border-color: rgba(181, 232, 224, 0.7);
+  color: #0D9488;
+  font-weight: 600;
+  box-shadow: 0 4rpx 12rpx rgba(181, 232, 224, 0.3);
 }
 
 /* ==========================================

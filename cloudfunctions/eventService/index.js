@@ -31,6 +31,7 @@ exports.main = async (event) => {
       case 'add': {
         const groupId = data.groupId || ''
         const memberName = (data.memberName || '').trim() || '未知'
+        const itemType = (data.type === '冷鲜' || data.type === '冷冻') ? data.type : '冷藏'
         const addRes = await col.add({
           data: {
             groupId,
@@ -41,6 +42,7 @@ exports.main = async (event) => {
             year: Number(data.year),
             month: Number(data.month),
             day: Number(data.day),
+            type: itemType,
             createdAt: db.serverDate()
           }
         })
@@ -65,6 +67,7 @@ exports.main = async (event) => {
           updateData.month = Number(data.month)
           updateData.day = Number(data.day)
         }
+        if (data.type !== undefined && ['冷藏', '冷鲜', '冷冻'].includes(data.type)) updateData.type = data.type
         await col.doc(data._id).update({ data: updateData })
         return { success: true }
       }

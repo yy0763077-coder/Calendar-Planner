@@ -15,13 +15,29 @@
     <!-- Title & Clear Expired -->
     <view class="title-row">
       <text class="page-title">冰箱物品</text>
-      <view wx:if="{{hasExpired}}" class="clear-expired-btn" bindtap="onClearExpired">清除过期物品</view>
+      <view class="clear-expired-btn" bindtap="onClearExpired">清除过期物品</view>
     </view>
 
     <!-- Family Bar -->
     <view wx:if="{{currentGroup}}" class="group-bar" bindtap="onSwitchGroup">
       <text class="group-bar-name">{{currentGroup.name}}</text>
       <text class="group-bar-arrow">▾</text>
+    </view>
+
+    <!-- Type Tabs -->
+    <view wx:if="{{currentGroup}}" class="type-tabs">
+      <view wx:for="{{typeTabs}}" wx:key="*this" class="type-tab {{selectedTypeTab === item ? 'active' : ''}}"
+            bindtap="onSelectTypeTab" data-tab="{{item}}">{{item}}</view>
+    </view>
+
+    <!-- Search Bar -->
+    <view wx:if="{{currentGroup}}" class="search-bar">
+      <view class="search-inner">
+        <text class="search-icon">🔍</text>
+        <input class="search-input" placeholder="搜索物品名称、备注"
+               value="{{searchKeyword}}" bindinput="onSearchInput" />
+        <text wx:if="{{searchKeyword}}" class="search-clear" bindtap="onClearSearch">✕</text>
+      </view>
     </view>
   </view>
 
@@ -33,14 +49,22 @@
         <text class="empty-text">暂无物品</text>
         <text class="empty-hint">点击添加冰箱物品</text>
       </view>
-      <view wx:for="{{items}}" wx:key="id" class="item-card {{item.urgency}}"
+      <view wx:elif="{{displayItems.length === 0}}" class="empty-state search-empty">
+        <view class="empty-icon">🔍</view>
+        <text class="empty-text">未找到「{{searchKeyword}}」相关物品</text>
+        <text class="empty-hint" bindtap="onClearSearch">点击清除搜索</text>
+      </view>
+      <view wx:for="{{displayItems}}" wx:key="id" class="item-card {{item.urgency}}"
             bindtap="onItemClick" data-id="{{item.id}}">
         <view class="item-main">
           <text class="item-name">{{item.title}}</text>
-          <view class="item-expiry-row {{item.urgency}}">
-            <text wx:if="{{item.daysLeft > 0}}">{{item.daysLeft}}天后到期（{{item.expiryDateStr}}到期）</text>
-            <text wx:elif="{{item.daysLeft === 0}}">今天到期（{{item.expiryDateStr}}到期）</text>
-            <text wx:else>已过期（{{item.expiryDateStr}}到期）</text>
+          <view class="item-meta-row">
+            <text class="item-type-tag">{{item.type || '冷藏'}}</text>
+            <text class="item-expiry-text {{item.urgency}}">
+              <text wx:if="{{item.daysLeft > 0}}">{{item.daysLeft}}天</text>
+              <text wx:elif="{{item.daysLeft === 0}}">今天</text>
+              <text wx:else>过期</text>
+            </text>
           </view>
           <text wx:if="{{item.note}}" class="item-note">{{item.note}}</text>
         </view>
@@ -157,6 +181,13 @@
                  maxlength="50" />
         </view>
         <view class="form-group">
+          <text class="form-label">类型</text>
+          <view class="type-quick-row">
+            <view wx:for="{{['冷藏','冷鲜','冷冻']}}" wx:key="*this" class="type-quick-btn {{itemType === item ? 'active' : ''}}"
+                  bindtap="onTypeQuick" data-type="{{item}}">{{item}}</view>
+          </view>
+        </view>
+        <view class="form-group">
           <text class="form-label">倒计时（几天后到期）</text>
           <input class="form-input countdown-input" type="number"
                  value="{{countdownDays}}"
@@ -235,5 +266,11 @@
         </view>
       </view>
     </view>
+  </view>
+
+  <!-- 自定义 Toast -->
+  <view wx:if="{{toastVisible}}" class="custom-toast">
+    <text class="custom-toast-icon">✓</text>
+    <text class="custom-toast-text">{{toastText}}</text>
   </view>
 </view>

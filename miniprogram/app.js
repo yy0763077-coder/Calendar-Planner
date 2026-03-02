@@ -6,7 +6,7 @@ App({
     }
 
     wx.cloud.init({
-      env: "cloud1-3gdzw3i7958fdeec",
+      env: "cloud1-7gfhlpf84d456b88",
       traceUser: true
     });
 
@@ -32,6 +32,7 @@ App({
       },
       fail: function (err) {
         console.error('[App] openid 获取失败:', err);
+        that._notifyOpenidFail();
       }
     });
   },
@@ -43,6 +44,12 @@ App({
       if (!this._openidCallbacks) this._openidCallbacks = [];
       this._openidCallbacks.push(cb);
     }
+  },
+
+  _notifyOpenidFail: function () {
+    var cbs = this._openidCallbacks || [];
+    this._openidCallbacks = [];
+    for (var i = 0; i < cbs.length; i++) cbs[i](null);
   },
 
   globalData: {
