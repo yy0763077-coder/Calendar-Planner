@@ -60,7 +60,7 @@ function DayCell({ data, onEventClick, onDayClick }: DayCellProps) {
             position: 'absolute',
             top: 3,
             left: 3,
-            fontSize: 8,
+            fontSize: 9,
             fontWeight: 700,
             color: '#fff',
             background: '#F87171',
@@ -77,7 +77,7 @@ function DayCell({ data, onEventClick, onDayClick }: DayCellProps) {
         <span
           style={{
             fontFamily: "'Manrope', sans-serif",
-            fontSize: 13,
+            fontSize: 15,
             fontWeight: 700,
             color: dayColor,
           }}
@@ -87,7 +87,7 @@ function DayCell({ data, onEventClick, onDayClick }: DayCellProps) {
         {data.lunar && (
           <span
             style={{
-              fontSize: 7,
+              fontSize: 9,
               lineHeight: '10px',
               color: lunarColor,
               fontWeight: data.isSolarTerm ? 700 : 400,
@@ -119,7 +119,7 @@ function DayCell({ data, onEventClick, onDayClick }: DayCellProps) {
           >
             <span
               style={{
-                fontSize: 8,
+                fontSize: 9,
                 lineHeight: '13px',
                 display: 'block',
                 overflow: 'hidden',

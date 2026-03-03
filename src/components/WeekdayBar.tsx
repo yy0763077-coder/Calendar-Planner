@@ -16,7 +16,7 @@ export default function WeekdayBar() {
           <div key={day} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px 0' }}>
             <span
               style={{
-                fontSize: 11,
+                fontSize: 13,
                 fontWeight: 700,
                 color: i === 0 ? '#F87171' : '#64748B',
               }}

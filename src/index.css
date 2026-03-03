@@ -21,6 +21,10 @@
   box-sizing: border-box;
 }
 
+html {
+  font-size: 18px; /* 基础字号 18px（原 16px 大一码） */
+}
+
 html, body, #root {
   height: 100%;
   width: 100%;

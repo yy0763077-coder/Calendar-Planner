@@ -24,7 +24,7 @@ export default function MonthInfo({ year, month, onPrev, onNext, onMonthClick }:
           onClick={onMonthClick}
           style={{
             fontFamily: "'Manrope', sans-serif",
-            fontSize: 20,
+            fontSize: 22,
             fontWeight: 700,
             color: 'rgba(15,23,42,0.6)',
             border: 'none',

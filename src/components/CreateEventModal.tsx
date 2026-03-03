@@ -99,11 +99,11 @@ export default function CreateEventModal({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20, padding: '8px 24px 40px 24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <h2 style={{ fontSize: 20, fontWeight: 700, color: '#171116', letterSpacing: '-0.02em', margin: 0 }}>
+              <h2 style={{ fontSize: 22, fontWeight: 700, color: '#171116', letterSpacing: '-0.02em', margin: 0 }}>
                 {isEditing ? '编辑行程' : '创建行程'}
               </h2>
               {displayDay && (
-                <span style={{ fontSize: 14, color: '#94A3B8', fontWeight: 500 }}>— {displayDay} 日</span>
+                <span style={{ fontSize: 16, color: '#94A3B8', fontWeight: 500 }}>— {displayDay} 日</span>
               )}
             </div>
             <button onClick={onClose} style={{ padding: 4, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer' }}>
@@ -115,7 +115,7 @@ export default function CreateEventModal({
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: '#0F172A', opacity: 0.6, letterSpacing: '0.05em', paddingBottom: 8 }}>
+              <label style={{ fontSize: 14, fontWeight: 600, color: '#0F172A', opacity: 0.6, letterSpacing: '0.05em', paddingBottom: 8 }}>
                 行程内容
               </label>
               <textarea
@@ -130,7 +130,7 @@ export default function CreateEventModal({
                   border: '2px solid #F1F5F9',
                   borderRadius: 16,
                   padding: '16px 16px',
-                  fontSize: 16,
+                  fontSize: 18,
                   lineHeight: 1.6,
                   color: '#0F172A',
                   resize: 'none',
@@ -160,7 +160,7 @@ export default function CreateEventModal({
                   boxShadow: '0px 4px 6px -4px rgba(246,198,234,0.2), 0px 10px 15px -3px rgba(246,198,234,0.2)',
                 }}
               >
-                <span style={{ fontSize: 16, fontWeight: 700, color: '#fff' }}>
+                <span style={{ fontSize: 18, fontWeight: 700, color: '#fff' }}>
                   {isEditing ? '保存修改' : '创建行程'}
                 </span>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -189,7 +189,7 @@ export default function CreateEventModal({
                     <path d="M1 4H13M5 4V2H9V4M3 4V14H11V4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     <path d="M5.5 7V11M8.5 7V11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
-                  <span style={{ fontSize: 14, fontWeight: 700 }}>删除行程</span>
+                  <span style={{ fontSize: 16, fontWeight: 700 }}>删除行程</span>
                 </button>
               )}
             </div>
