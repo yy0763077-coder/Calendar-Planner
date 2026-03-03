@@ -47,13 +47,13 @@
 }
 
 .avatar-text {
-  font-size: 34rpx;
+  font-size: 38rpx;
   font-weight: 700;
   color: #fff;
 }
 
 .avatar-text.avatar-fullname {
-  font-size: 26rpx;
+  font-size: 30rpx;
   max-width: 72rpx;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -116,7 +116,7 @@
 }
 
 .month-text {
-  font-size: 40rpx;
+  font-size: 44rpx;
   font-weight: 700;
   color: rgba(15, 23, 42, 0.6);
 }
@@ -133,13 +133,13 @@
 }
 
 .group-bar-name {
-  font-size: 28rpx;
+  font-size: 32rpx;
   font-weight: 600;
   color: #64748B;
 }
 
 .group-bar-arrow {
-  font-size: 24rpx;
+  font-size: 28rpx;
   color: #94A3B8;
 }
 
@@ -155,7 +155,7 @@
 }
 
 .group-gate-title {
-  font-size: 40rpx;
+  font-size: 44rpx;
   font-weight: 700;
   color: #171116;
   display: block;
@@ -184,13 +184,13 @@
 }
 
 .group-gate-btn text:first-child {
-  font-size: 36rpx;
+  font-size: 40rpx;
   font-weight: 700;
   color: #0F172A;
 }
 
 .group-gate-desc {
-  font-size: 28rpx;
+  font-size: 32rpx;
   color: #94A3B8;
 }
 
@@ -203,7 +203,7 @@
 }
 
 .group-form-title {
-  font-size: 40rpx;
+  font-size: 44rpx;
   font-weight: 700;
   color: #171116;
   display: block;
@@ -216,7 +216,7 @@
   border: 3rpx solid #E2E8F0;
   border-radius: 20rpx;
   padding: 0 24rpx;
-  font-size: 32rpx;
+  font-size: 36rpx;
   margin-bottom: 32rpx;
 }
 
@@ -231,7 +231,7 @@
   height: 88rpx;
   line-height: 88rpx;
   border-radius: 20rpx;
-  font-size: 32rpx;
+  font-size: 36rpx;
   font-weight: 600;
 }
 
@@ -267,7 +267,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 52rpx;
+  font-size: 56rpx;
   font-weight: 700;
   color: #fff;
   margin-bottom: 32rpx;
@@ -275,21 +275,21 @@
 }
 
 .join-success-title {
-  font-size: 36rpx;
+  font-size: 40rpx;
   font-weight: 700;
   color: #0F172A;
   margin-bottom: 12rpx;
 }
 
 .join-success-group {
-  font-size: 40rpx;
+  font-size: 44rpx;
   font-weight: 700;
   color: #F6C6EA;
   margin-bottom: 24rpx;
 }
 
 .join-success-desc {
-  font-size: 30rpx;
+  font-size: 34rpx;
   color: #64748B;
   line-height: 1.6;
   text-align: center;
@@ -308,7 +308,7 @@
 
 .join-success-tips text {
   display: block;
-  font-size: 28rpx;
+  font-size: 32rpx;
   color: #64748B;
   line-height: 2;
 }
@@ -319,7 +319,7 @@
   line-height: 88rpx;
   background: linear-gradient(135deg, #F6C6EA 0%, #D4A0C0 100%);
   color: #fff;
-  font-size: 34rpx;
+  font-size: 38rpx;
   font-weight: 600;
   border-radius: 24rpx;
   text-align: center;
@@ -334,7 +334,7 @@
 }
 
 .group-switcher-title {
-  font-size: 32rpx;
+  font-size: 36rpx;
   font-weight: 600;
   color: #94A3B8;
   display: block;
@@ -354,7 +354,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 34rpx;
+  font-size: 38rpx;
   font-weight: 600;
   color: #0F172A;
 }
@@ -378,18 +378,18 @@
 }
 
 .group-invite-label {
-  font-size: 28rpx;
+  font-size: 32rpx;
   color: #64748B;
 }
 
 .group-invite-copy {
-  font-size: 30rpx;
+  font-size: 34rpx;
   font-weight: 600;
   color: #F6C6EA;
 }
 
 .group-invite-link {
-  font-size: 30rpx;
+  font-size: 34rpx;
   font-weight: 600;
   color: #F6C6EA;
 }
@@ -403,13 +403,13 @@
   margin-top: 16rpx;
   border-radius: 20rpx;
   border: 3rpx dashed #F6C6EA;
-  font-size: 32rpx;
+  font-size: 36rpx;
   font-weight: 600;
   color: #F6C6EA;
 }
 
 .group-switcher-new-icon {
-  font-size: 36rpx;
+  font-size: 40rpx;
   font-weight: 700;
 }
 
@@ -431,7 +431,7 @@
   flex-direction: column;
   gap: 4rpx;
   padding: 12rpx 0;
-  font-size: 28rpx;
+  font-size: 32rpx;
   color: #64748B;
 }
 
@@ -440,19 +440,19 @@
 }
 
 .member-invite-copy {
-  font-size: 30rpx;
+  font-size: 34rpx;
   font-weight: 600;
   color: #F6C6EA;
 }
 
 .member-invite-link {
-  font-size: 30rpx;
+  font-size: 34rpx;
   font-weight: 600;
   color: #F6C6EA;
 }
 
 .member-invite-tip {
-  font-size: 24rpx;
+  font-size: 28rpx;
   color: #94A3B8;
   line-height: 1.3;
   padding-top: 2rpx;
@@ -460,7 +460,7 @@
 
 .member-edit-btn {
   padding: 12rpx 24rpx;
-  font-size: 28rpx;
+  font-size: 32rpx;
   font-weight: 600;
   color: #F6C6EA;
   flex-shrink: 0;
@@ -468,7 +468,7 @@
 
 .member-remove-btn {
   padding: 12rpx 24rpx;
-  font-size: 28rpx;
+  font-size: 32rpx;
   font-weight: 600;
   color: #94A3B8;
   flex-shrink: 0;
@@ -482,7 +482,7 @@
 }
 
 .member-leave-text {
-  font-size: 30rpx;
+  font-size: 34rpx;
   color: #94A3B8;
 }
 
@@ -494,12 +494,12 @@
 }
 
 .member-delete-text {
-  font-size: 30rpx;
+  font-size: 34rpx;
   color: #F87171;
 }
 
 .creator-tag {
-  font-size: 24rpx;
+  font-size: 28rpx;
   color: #64748B;
   margin-left: 8rpx;
   padding: 2rpx 10rpx;
@@ -517,7 +517,7 @@
 }
 
 .edit-profile-title {
-  font-size: 40rpx;
+  font-size: 44rpx;
   font-weight: 700;
   color: #171116;
   display: block;
@@ -529,7 +529,7 @@
 }
 
 .edit-profile-label {
-  font-size: 28rpx;
+  font-size: 32rpx;
   font-weight: 600;
   color: #64748B;
   display: block;
@@ -542,7 +542,7 @@
   border: 3rpx solid #E2E8F0;
   border-radius: 20rpx;
   padding: 0 24rpx;
-  font-size: 32rpx;
+  font-size: 36rpx;
 }
 
 .edit-profile-colors {
@@ -574,7 +574,7 @@
   height: 88rpx;
   line-height: 88rpx;
   border-radius: 20rpx;
-  font-size: 32rpx;
+  font-size: 36rpx;
   font-weight: 600;
 }
 
@@ -605,7 +605,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26rpx;
+  font-size: 30rpx;
   font-weight: 700;
   color: #64748B;
   box-sizing: border-box;
@@ -671,7 +671,7 @@
 }
 
 .lunar-badge {
-  font-size: 16rpx;
+  font-size: 20rpx;
   line-height: 18rpx;
   max-width: 60%;
   overflow: hidden;
@@ -680,7 +680,7 @@
 }
 
 .holiday-badge {
-  font-size: 22rpx;
+  font-size: 26rpx;
   font-weight: 700;
   color: #fff;
   background: #F87171;
@@ -697,7 +697,7 @@
 }
 
 .day-num {
-  font-size: 30rpx;
+  font-size: 34rpx;
   font-weight: 700;
   line-height: 1.2;
 }
@@ -720,7 +720,7 @@
 }
 
 .event-text {
-  font-size: 20rpx;
+  font-size: 24rpx;
   line-height: 26rpx;
   white-space: nowrap;
   overflow: hidden;
@@ -747,7 +747,7 @@
 }
 
 .bell-icon {
-  font-size: 48rpx;
+  font-size: 52rpx;
   line-height: 1;
 }
 
@@ -766,13 +766,13 @@
 }
 
 .role-picker-title {
-  font-size: 44rpx;
+  font-size: 48rpx;
   font-weight: 700;
   color: #171116;
 }
 
 .role-picker-sub {
-  font-size: 28rpx;
+  font-size: 32rpx;
   color: #94A3B8;
   margin-top: 8rpx;
 }
@@ -806,13 +806,13 @@
   align-items: center;
   justify-content: center;
   border: 5rpx solid;
-  font-size: 44rpx;
+  font-size: 48rpx;
   font-weight: 700;
   color: #fff;
 }
 
 .role-name {
-  font-size: 34rpx;
+  font-size: 38rpx;
   font-weight: 600;
   color: #0F172A;
 }
@@ -838,7 +838,7 @@
 
 .dropdown-title {
   padding: 24rpx 32rpx 12rpx;
-  font-size: 24rpx;
+  font-size: 28rpx;
   font-weight: 600;
   color: #94A3B8;
   letter-spacing: 0.05em;
@@ -865,13 +865,13 @@
   justify-content: center;
   border: 4rpx solid;
   flex-shrink: 0;
-  font-size: 28rpx;
+  font-size: 32rpx;
   font-weight: 700;
   color: #fff;
 }
 
 .dropdown-name {
-  font-size: 32rpx;
+  font-size: 36rpx;
   color: #64748B;
   flex: 1;
   overflow: hidden;
@@ -885,7 +885,7 @@
 }
 
 .dropdown-check {
-  font-size: 28rpx;
+  font-size: 32rpx;
   color: #F6C6EA;
   font-weight: 700;
   flex-shrink: 0;
@@ -955,13 +955,13 @@
 }
 
 .modal-title {
-  font-size: 44rpx;
+  font-size: 48rpx;
   font-weight: 700;
   color: #171116;
 }
 
 .modal-day-text {
-  font-size: 32rpx;
+  font-size: 36rpx;
   color: #94A3B8;
   font-weight: 500;
 }
@@ -974,7 +974,7 @@
   justify-content: center;
   border-radius: 50%;
   color: #94A3B8;
-  font-size: 40rpx;
+  font-size: 44rpx;
 }
 
 /* ==========================================
@@ -986,7 +986,7 @@
 }
 
 .form-label {
-  font-size: 28rpx;
+  font-size: 32rpx;
   font-weight: 600;
   color: rgba(15, 23, 42, 0.6);
   letter-spacing: 0.05em;
@@ -999,7 +999,7 @@
   border: 3rpx solid #F1F5F9;
   border-radius: 24rpx;
   padding: 24rpx;
-  font-size: 32rpx;
+  font-size: 36rpx;
   line-height: 1.6;
   color: #0F172A;
   min-height: 160rpx;
@@ -1017,7 +1017,7 @@
   height: 96rpx;
   background: #F6C6EA !important;
   border-radius: 24rpx !important;
-  font-size: 36rpx;
+  font-size: 40rpx;
   font-weight: 700;
   color: #fff !important;
   display: flex;
@@ -1035,7 +1035,7 @@
   width: 100%;
   height: 88rpx;
   border-radius: 24rpx !important;
-  font-size: 32rpx;
+  font-size: 36rpx;
   font-weight: 700;
   color: #F87171 !important;
   border: 2rpx solid #FECACA !important;
@@ -1072,7 +1072,7 @@
 }
 
 .picker-year {
-  font-size: 40rpx;
+  font-size: 44rpx;
   font-weight: 700;
   color: #0F172A;
 }
@@ -1089,7 +1089,7 @@
   padding: 24rpx 12rpx;
   border-radius: 20rpx;
   text-align: center;
-  font-size: 32rpx;
+  font-size: 36rpx;
   font-weight: 600;
   color: #0F172A;
 }
@@ -1131,13 +1131,13 @@
   justify-content: center;
   border: 4rpx solid;
   flex-shrink: 0;
-  font-size: 32rpx;
+  font-size: 36rpx;
   font-weight: 700;
   color: #fff;
 }
 
 .member-avatar-fullname text {
-  font-size: 24rpx;
+  font-size: 28rpx;
   max-width: 60rpx;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1153,7 +1153,7 @@
 }
 
 .member-name {
-  font-size: 32rpx;
+  font-size: 36rpx;
   font-weight: 600;
   color: #0F172A;
   overflow: hidden;
@@ -1162,7 +1162,7 @@
 }
 
 .current-tag {
-  font-size: 22rpx;
+  font-size: 26rpx;
   font-weight: 700;
   color: #F6C6EA;
   background: rgba(246, 198, 234, 0.15);
@@ -1185,7 +1185,7 @@
 }
 
 .color-label {
-  font-size: 24rpx;
+  font-size: 28rpx;
   color: #94A3B8;
 }
 
@@ -1197,7 +1197,7 @@
   justify-content: center;
   border-radius: 50%;
   color: #94A3B8;
-  font-size: 28rpx;
+  font-size: 32rpx;
   flex-shrink: 0;
 }
 
@@ -1213,7 +1213,7 @@
   border: 3rpx solid #F1F5F9;
   border-radius: 20rpx;
   padding: 0 24rpx;
-  font-size: 32rpx;
+  font-size: 36rpx;
   color: #0F172A;
 }
 
@@ -1227,7 +1227,7 @@
   height: 88rpx;
   background: #F6C6EA !important;
   color: #fff !important;
-  font-size: 32rpx;
+  font-size: 36rpx;
   font-weight: 700;
   border-radius: 20rpx !important;
   line-height: 88rpx;
@@ -1237,7 +1237,7 @@
   height: 88rpx;
   padding: 0 32rpx;
   color: #94A3B8 !important;
-  font-size: 32rpx;
+  font-size: 36rpx;
   border-radius: 20rpx !important;
   background: transparent !important;
   line-height: 88rpx;
@@ -1254,13 +1254,13 @@
 }
 
 .add-icon {
-  font-size: 36rpx;
+  font-size: 40rpx;
   color: #64748B;
   font-weight: 700;
 }
 
 .add-label {
-  font-size: 32rpx;
+  font-size: 36rpx;
   font-weight: 600;
   color: #64748B;
 }

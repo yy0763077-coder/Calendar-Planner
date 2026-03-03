@@ -72,7 +72,7 @@ export default function Header({ members, currentUser, onMenuClick, onSwitchUser
             }}
           >
             <div style={{ padding: '12px 16px 6px' }}>
-              <p style={{ fontSize: 12, fontWeight: 600, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>切换用户</p>
+              <p style={{ fontSize: 14, fontWeight: 600, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>切换用户</p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', padding: '0 6px 8px' }}>
               {members.map((m) => {
@@ -106,7 +106,7 @@ export default function Header({ members, currentUser, onMenuClick, onSwitchUser
                     >
                       <img src={m.avatar} alt={m.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
-                    <span style={{ fontSize: 16, fontWeight: isActive ? 700 : 400, color: isActive ? '#0F172A' : '#64748B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                    <span style={{ fontSize: 18, fontWeight: isActive ? 700 : 400, color: isActive ? '#0F172A' : '#64748B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
                       {m.name}
                     </span>
                     {isActive && (

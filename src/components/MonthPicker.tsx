@@ -63,7 +63,7 @@ export default function MonthPicker({ isOpen, onClose, year, month, onSelect }: 
           >
             <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M6 1L1 6L6 11" stroke="#F6C6EA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
-          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 20, fontWeight: 700, color: '#0F172A' }}>{pickerYear} 年</span>
+          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 22, fontWeight: 700, color: '#0F172A' }}>{pickerYear} 年</span>
           <button
             onClick={() => setPickerYear((y) => y + 1)}
             style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer' }}
@@ -83,7 +83,7 @@ export default function MonthPicker({ isOpen, onClose, year, month, onSelect }: 
                 style={{
                   padding: '12px 0',
                   borderRadius: 12,
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: 600,
                   border: 'none',
                   cursor: 'pointer',

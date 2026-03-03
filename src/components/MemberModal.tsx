@@ -80,7 +80,7 @@ export default function MemberModal({ isOpen, onClose, members, currentUserId, o
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '8px 24px 40px 24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h2 style={{ fontSize: 22, fontWeight: 700, color: '#171116', letterSpacing: '-0.02em', margin: 0 }}>成员管理</h2>
+            <h2 style={{ fontSize: 24, fontWeight: 700, color: '#171116', letterSpacing: '-0.02em', margin: 0 }}>成员管理</h2>
             <button onClick={onClose} style={{ padding: 4, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer' }}>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <path d="M1 1L13 13M1 13L13 1" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round"/>
@@ -121,14 +121,14 @@ export default function MemberModal({ isOpen, onClose, members, currentUserId, o
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <p style={{ fontSize: 16, fontWeight: 600, color: '#0F172A', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</p>
+                      <p style={{ fontSize: 18, fontWeight: 600, color: '#0F172A', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</p>
                       {isCurrent && (
-                        <span style={{ fontSize: 10, fontWeight: 700, color: '#F6C6EA', background: 'rgba(246,198,234,0.15)', padding: '1px 6px', borderRadius: 12 }}>当前</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#F6C6EA', background: 'rgba(246,198,234,0.15)', padding: '1px 6px', borderRadius: 12 }}>当前</span>
                       )}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
                       <div style={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: m.color.bg, border: `1px solid ${m.color.text}` }} />
-                      <span style={{ fontSize: 11, color: '#94A3B8' }}>专属颜色</span>
+                      <span style={{ fontSize: 12, color: '#94A3B8' }}>专属颜色</span>
                     </div>
                   </div>
                   <button
@@ -157,7 +157,7 @@ export default function MemberModal({ isOpen, onClose, members, currentUserId, o
                   border: '2px solid #F1F5F9',
                   borderRadius: 12,
                   padding: '0 12px',
-                  fontSize: 16,
+                  fontSize: 18,
                   color: '#0F172A',
                   outline: 'none',
                   fontFamily: 'inherit',
@@ -171,7 +171,7 @@ export default function MemberModal({ isOpen, onClose, members, currentUserId, o
                   padding: '0 20px',
                   background: newName.trim() ? '#F6C6EA' : '#F1F5F9',
                   color: '#fff',
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: 700,
                   borderRadius: 12,
                   border: 'none',
@@ -183,7 +183,7 @@ export default function MemberModal({ isOpen, onClose, members, currentUserId, o
               </button>
               <button
                 onClick={() => { setAdding(false); setNewName(''); }}
-                style={{ height: 44, padding: '0 12px', color: '#94A3B8', fontSize: 16, borderRadius: 12, border: 'none', background: 'transparent', cursor: 'pointer' }}
+                style={{ height: 44, padding: '0 12px', color: '#94A3B8', fontSize: 18, borderRadius: 12, border: 'none', background: 'transparent', cursor: 'pointer' }}
               >
                 取消
               </button>
@@ -206,7 +206,7 @@ export default function MemberModal({ isOpen, onClose, members, currentUserId, o
               }}
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2V14M2 8H14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-              <span style={{ fontSize: 16, fontWeight: 600 }}>新增成员</span>
+              <span style={{ fontSize: 18, fontWeight: 600 }}>新增成员</span>
             </button>
           )}
         </div>
