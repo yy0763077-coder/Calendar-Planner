@@ -22,7 +22,7 @@
 }
 
 html {
-  font-size: 20px; /* 基础字号 20px（再大一号） */
+  font-size: 18px; /* 基础字号 18px（原 16px 大一码） */
 }
 
 html, body, #root {

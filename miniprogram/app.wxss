@@ -2,7 +2,7 @@ page {
   height: 100%;
   background: #f5f5f5;
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
-  font-size: 32rpx; /* 基础字号再大一号 */
+  font-size: 28rpx; /* 基础字号大一码 */
   -webkit-font-smoothing: antialiased;
 }
 
