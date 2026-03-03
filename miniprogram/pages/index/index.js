@@ -133,8 +133,18 @@ Page({
     var headerRightPadding = menuRight > 0 ? Math.ceil((windowWidth - menuRight + 16) * 2) : 96;
     this.setData({ statusBarHeight: statusBarHeight, headerRightPadding: headerRightPadding });
 
-    if (options && options.inviteCode) {
-      this._pendingInviteCode = options.inviteCode;
+    // 支持多种入口获取邀请码：分享链接、扫码、URL Link 等（与轻小历一致）
+    var inviteCode = (options && options.inviteCode) || (options && options.invitecode) || '';
+    if (!inviteCode || !inviteCode.trim()) {
+      try {
+        var launch = wx.getLaunchOptionsSync && wx.getLaunchOptionsSync();
+        if (launch && launch.query && (launch.query.inviteCode || launch.query.invitecode)) {
+          inviteCode = launch.query.inviteCode || launch.query.invitecode || '';
+        }
+      } catch (e) {}
+    }
+    if (inviteCode && inviteCode.trim()) {
+      this._pendingInviteCode = inviteCode.trim().toUpperCase();
     }
     this.checkGroupAndLoad();
   },
@@ -160,9 +170,11 @@ Page({
     });
   },
 
-  checkGroupAndLoad: function () {
+  checkGroupAndLoad: function (showLoading) {
     var that = this;
-    wx.showLoading({ title: '加载中…', mask: true });
+    if (showLoading !== false) {
+      wx.showLoading({ title: '加载中…', mask: true });
+    }
     getApp().getOpenid(function (openid) {
       that._doCheckGroupAndLoad(openid);
     });
@@ -190,11 +202,14 @@ Page({
         var eventsRaw = res.result.events || [];
 
         if (currentGroupId) wx.setStorageSync('currentGroupId', currentGroupId);
-        that.setData({ myGroups: groups, currentGroupId: currentGroupId, currentGroup: currentGroup, groupGateVisible: groups.length === 0 });
+        // 通过邀请链接进入时：不显示家庭选择门，直接执行加入逻辑（与轻小历一致）
+        var showGate = groups.length === 0 && !that._pendingInviteCode;
+        that.setData({ myGroups: groups, currentGroupId: currentGroupId, currentGroup: currentGroup, groupGateVisible: showGate });
 
         if (that._pendingInviteCode) {
-          that.tryAutoJoin(that._pendingInviteCode);
+          var code = that._pendingInviteCode;
           that._pendingInviteCode = null;
+          that.tryAutoJoin(code);
           return;
         }
 
@@ -287,17 +302,26 @@ Page({
 
   tryAutoJoin: function (code) {
     var that = this;
+    wx.showLoading({ title: '加入中…', mask: true });
     getApp().getOpenid(function (openid) {
+      if (!openid) {
+        wx.hideLoading();
+        wx.showToast({ title: '获取用户信息失败', icon: 'none' });
+        return;
+      }
       wx.cloud.callFunction({
         name: 'eventService',
         data: { action: 'joinGroup', data: { openid: openid, inviteCode: code } },
         success: function (res) {
+          wx.hideLoading();
           if (res.result && res.result.groupId) {
             wx.setStorageSync('currentGroupId', res.result.groupId);
-            that.checkGroupAndLoad();
+            // 静默加载，不遮挡加入成功弹窗
+            that.checkGroupAndLoad(false);
             if (res.result.message === '已在组内') {
               wx.showToast({ title: '你已在此家庭内', icon: 'none' });
             } else {
+              // 点进去直接加入，弹窗展示成功（与轻小历一致）
               that.setData({
                 joinSuccessVisible: true,
                 joinSuccessGroupName: res.result.groupName || '该家庭',
@@ -308,7 +332,10 @@ Page({
             wx.showToast({ title: res.result && res.result.message || '加入失败', icon: 'none' });
           }
         },
-        fail: function () { wx.showToast({ title: '加入失败', icon: 'none' }); }
+        fail: function () {
+          wx.hideLoading();
+          wx.showToast({ title: '加入失败', icon: 'none' });
+        }
       });
     });
   },
@@ -692,9 +719,12 @@ Page({
   },
 
   onShareAppMessage: function () {
-    var code = this.data.currentGroup && this.data.currentGroup.inviteCode;
+    var group = this.data.currentGroup;
+    var code = group && group.inviteCode;
+    var name = (group && group.name) ? group.name : '家庭';
+    // 与轻小历一致：分享卡片标题显示「邀请你加入XXX」
     return {
-      title: '邀请你加入「' + (this.data.currentGroup && this.data.currentGroup.name || '') + '」- 冰箱物品记录',
+      title: '邀请你加入「' + name + '」',
       path: '/pages/index/index?inviteCode=' + (code || '')
     };
   },
