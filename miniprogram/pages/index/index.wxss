@@ -19,6 +19,12 @@
   padding: 20rpx 48rpx 24rpx;
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
 .header-btn {
   width: 80rpx;
   height: 80rpx;
@@ -27,6 +33,20 @@
   align-items: center;
   justify-content: center;
   gap: 8rpx;
+}
+
+.cs-icon-wrap {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(246, 198, 234, 0.35) 0%, rgba(181, 232, 224, 0.35) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cs-icon {
+  font-size: 36rpx;
 }
 
 .menu-line {
@@ -757,6 +777,102 @@
 .member-delete-text {
   font-size: 30rpx;
   color: #F87171;
+}
+
+/* 意见反馈弹窗（马卡龙治愈风）*/
+.feedback-modal {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, #FFF5F9 0%, #fff 20%);
+  border-radius: 40rpx 40rpx 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  transform: translateY(100%);
+  transition: transform 0.3s ease-out;
+  box-shadow: 0 -8rpx 32rpx rgba(246, 198, 234, 0.2);
+}
+
+.feedback-modal.show { transform: translateY(0); }
+
+.feedback-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 40rpx 8rpx;
+}
+
+.feedback-modal-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.feedback-modal-desc {
+  font-size: 28rpx;
+  color: #64748B;
+  padding: 0 40rpx 24rpx;
+  display: block;
+}
+
+.feedback-modal-input-wrap {
+  margin: 0 40rpx 0 40rpx;
+  padding: 0;
+}
+
+.feedback-modal-input {
+  width: 100%;
+  min-height: 240rpx;
+  padding: 24rpx;
+  background: rgba(255,255,255,0.8);
+  border: 2rpx solid rgba(246, 198, 234, 0.3);
+  border-radius: 24rpx;
+  font-size: 30rpx;
+  color: #0F172A;
+  box-sizing: border-box;
+  display: block;
+}
+
+.feedback-modal-placeholder {
+  color: #94A3B8;
+}
+
+.feedback-modal-count {
+  font-size: 26rpx;
+  color: #94A3B8;
+  text-align: right;
+  padding: 8rpx 0 16rpx;
+  display: block;
+}
+
+.feedback-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 0 40rpx 32rpx;
+}
+
+.feedback-modal-btn {
+  flex: 1;
+  margin: 0;
+  height: 88rpx;
+  line-height: 88rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #F6C6EA 0%, #B5E8E0 100%);
+  border-radius: 44rpx;
+  border: none;
+}
+
+.feedback-modal-btn::after { border: none; }
+
+.feedback-modal-btn.disabled { opacity: 0.5; }
+
+.contact-admin {
+  font-size: 24rpx;
+  color: #64748B;
+  flex-shrink: 0;
 }
 
 .creator-tag {

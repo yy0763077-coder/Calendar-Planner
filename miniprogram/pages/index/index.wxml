@@ -3,12 +3,17 @@
   <view class="top-section">
     <view style="height: {{statusBarHeight}}px;"></view>
 
-    <!-- Header -->
+    <!-- Header：家庭管理(左) + 反馈(右) -->
     <view class="header" style="padding-right: {{headerRightPadding || 96}}rpx;">
-      <view class="header-btn" bindtap="onMenuClick">
-        <view class="menu-line"></view>
-        <view class="menu-line"></view>
-        <view class="menu-line"></view>
+      <view class="header-left">
+        <view class="header-btn" bindtap="onMenuClick">
+          <view class="menu-line"></view>
+          <view class="menu-line"></view>
+          <view class="menu-line"></view>
+        </view>
+        <view class="cs-icon-wrap" bindtap="onFeedbackTap">
+          <text class="cs-icon">🎧</text>
+        </view>
       </view>
     </view>
 
@@ -264,6 +269,33 @@
         <view wx:if="{{myRole === 'creator' && currentGroup}}" class="member-delete-row" bindtap="onDeleteGroup">
           <text class="member-delete-text">删除该家庭</text>
         </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== 意见反馈弹窗（点击即开，无跳转延迟）===== -->
+  <view wx:if="{{feedbackVisible}}" class="modal-overlay {{feedbackAnimating ? 'show' : ''}}" bindtap="closeFeedbackModal">
+    <view class="feedback-modal {{feedbackAnimating ? 'show' : ''}}" catchtap="noop">
+      <view class="modal-handle"><view class="handle-bar"></view></view>
+      <view class="feedback-modal-header">
+        <text class="feedback-modal-title">意见反馈</text>
+        <view class="close-btn" bindtap="closeFeedbackModal"><text>✕</text></view>
+      </view>
+      <text class="feedback-modal-desc">欢迎留下您的宝贵建议～</text>
+      <view class="feedback-modal-input-wrap">
+        <textarea class="feedback-modal-input"
+          placeholder="请输入您的反馈内容..."
+          placeholder-class="feedback-modal-placeholder"
+          value="{{feedbackText}}"
+          bindinput="onFeedbackInput"
+          maxlength="500" />
+        <text class="feedback-modal-count">{{feedbackText.length}}/500</text>
+      </view>
+      <view class="feedback-modal-actions">
+        <button class="feedback-modal-btn {{!feedbackCanSubmit ? 'disabled' : ''}}"
+          bindtap="onFeedbackSubmit"
+          disabled="{{!feedbackCanSubmit}}">确认提交</button>
+        <text class="contact-admin" catchtap="onCopyWechat">联系管理员</text>
       </view>
     </view>
   </view>

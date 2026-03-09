@@ -89,6 +89,11 @@ Page({
     memberVisible: false,
     memberAnimating: false,
 
+    feedbackVisible: false,
+    feedbackAnimating: false,
+    feedbackText: '',
+    feedbackCanSubmit: false,
+
     joinSuccessVisible: false,
     joinSuccessGroupName: '',
     joinSuccessViaLink: false,
@@ -1013,6 +1018,68 @@ Page({
           }
           wx.showToast({ title: msg, icon: 'none', duration: 2500 });
         }
+      });
+    });
+  },
+
+  onFeedbackTap: function () {
+    this.setData({ feedbackVisible: true, feedbackText: '', feedbackCanSubmit: false });
+    var that = this;
+    setTimeout(function () { that.setData({ feedbackAnimating: true }); }, 50);
+  },
+
+  closeFeedbackModal: function () {
+    this.setData({ feedbackAnimating: false });
+    var that = this;
+    setTimeout(function () { that.setData({ feedbackVisible: false }); }, 300);
+  },
+
+  onFeedbackInput: function (e) {
+    var val = (e.detail.value || '').trim();
+    this.setData({
+      feedbackText: e.detail.value,
+      feedbackCanSubmit: val.length > 0
+    });
+  },
+
+  onCopyWechat: function () {
+    wx.setClipboardData({
+      data: '18815958187',
+      success: function () { wx.showToast({ title: '复制成功', icon: 'success' }); },
+      fail: function () { wx.showToast({ title: '复制失败', icon: 'none' }); }
+    });
+  },
+
+  onFeedbackSubmit: function () {
+    var text = this.data.feedbackText.trim();
+    if (!text) {
+      wx.showToast({ title: '请填写反馈内容', icon: 'none' });
+      return;
+    }
+    var that = this;
+    wx.showLoading({ title: '提交中...' });
+    wx.cloud.callFunction({
+      name: 'sendFeedback',
+      data: { content: text }
+    }).then(function (res) {
+      wx.hideLoading();
+      if (res.result && res.result.success) {
+        wx.showToast({ title: '提交成功', icon: 'success' });
+        that.setData({ feedbackText: '', feedbackCanSubmit: false });
+        that.closeFeedbackModal();
+      } else {
+        wx.showToast({
+          title: (res.result && res.result.message) ? res.result.message : '提交失败，请稍后重试',
+          icon: 'none',
+          duration: 2500
+        });
+      }
+    }).catch(function (err) {
+      wx.hideLoading();
+      wx.showToast({
+        title: err.errMsg || '网络异常，请稍后重试',
+        icon: 'none',
+        duration: 2500
       });
     });
   },

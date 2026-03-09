@@ -1,0 +1,30 @@
+<view class="feedback-page">
+  <view class="feedback-bg"></view>
+
+  <view class="feedback-content">
+    <view class="feedback-header">
+      <view class="feedback-icon">💬</view>
+      <text class="feedback-title">意见反馈</text>
+      <text class="feedback-desc">欢迎留下您的宝贵建议，我们会认真阅读每一条反馈～</text>
+    </view>
+
+    <view class="feedback-form">
+      <textarea class="feedback-input"
+        placeholder="请输入您的反馈内容..."
+        placeholder-class="feedback-placeholder"
+        value="{{feedbackText}}"
+        bindinput="onFeedbackInput"
+        maxlength="500"
+        auto-height />
+      <text class="feedback-count">{{feedbackText.length}}/500</text>
+    </view>
+
+    <view class="feedback-btn-wrap">
+      <button class="feedback-btn {{!canSubmit ? 'disabled' : ''}}"
+        bindtap="onSubmit"
+        disabled="{{!canSubmit}}">
+        确认提交
+      </button>
+    </view>
+  </view>
+</view>
